@@ -12,13 +12,13 @@ const DOWNLOADS_DIR = path.join(__dirname, 'downloads');
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://43.203.124.132:4300';
 const UPDATE_MANIFEST = {
   client: {
-    version: process.env.CLIENT_APP_VERSION || '1.0.26',
-    fileName: process.env.CLIENT_APP_FILE || 'Cheongdam Bot Setup 1.0.26.exe',
+    version: process.env.CLIENT_APP_VERSION || '1.0.29',
+    fileName: process.env.CLIENT_APP_FILE || 'Cheongdam Bot Setup 1.0.29.exe',
     notes: '설치 패키지 용량 최적화·업데이트 무결성(대용량 SHA)·전역 오류 로깅',
   },
   admin: {
-    version: process.env.ADMIN_APP_VERSION || '1.0.7',
-    fileName: process.env.ADMIN_APP_FILE || 'Cheongdam License Admin Setup 1.0.7.exe',
+    version: process.env.ADMIN_APP_VERSION || '1.0.8',
+    fileName: process.env.ADMIN_APP_FILE || 'Cheongdam License Admin Setup 1.0.8.exe',
     notes: '일반/고급 답글 라이센스 선택 및 자동 업데이트 안정화',
   },
 };
