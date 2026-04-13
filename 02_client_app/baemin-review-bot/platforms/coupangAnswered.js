@@ -27,7 +27,7 @@ const COUPANG_STORE_ID = process.env.COUPANG_STORE_ID || process.env.STORE_ID ||
 const COUPANG_BIZ_NO = process.env.COUPANG_BIZ_NO || process.env.BIZ_NO || '';
 const AUTO_SUBMIT_REVIEW_CARE =
   String(process.env.AUTO_SUBMIT_REVIEW_CARE).toLowerCase() === 'true';
-const HAPPYTALK_ACTION_DELAY_MS = Number(process.env.HAPPYTALK_ACTION_DELAY_MS || 200);
+const HAPPYTALK_ACTION_DELAY_MS = Number(process.env.HAPPYTALK_ACTION_DELAY_MS || 350);
 const HAPPYTALK_RETRY_INTERVAL_MS = Number(process.env.HAPPYTALK_RETRY_INTERVAL_MS || 120);
 const COUPANG_BLIND_TRACE =
   String(process.env.COUPANG_BLIND_TRACE || 'false').toLowerCase() === 'true';
@@ -821,20 +821,27 @@ async function fillChatInputAndSend(page, value) {
 }
 
 async function waitForHappyTalkReady(page, timeout = 20000) {
+  const READY_KEYWORDS = [
+    '신규 상담',
+    '신규상담',
+    '상담 시작',
+    '시작하기',
+    '리뷰',
+    '블라인드',
+    '게시중단',
+    '접수',
+    '쿠팡',
+    '해피톡',
+    '문의',
+    '채팅',
+    '상담',
+  ];
   const start = Date.now();
   while (Date.now() - start < timeout) {
     const roots = await getAllSearchRoots(page);
     for (const root of roots) {
       const text = normalizeText(await root.locator('body').innerText().catch(() => ''));
-      if (
-        text.includes('신규 상담') ||
-        text.includes('리뷰') ||
-        text.includes('블라인드') ||
-        text.includes('게시중단') ||
-        text.includes('접수')
-      ) {
-        return true;
-      }
+      if (READY_KEYWORDS.some((keyword) => text.includes(keyword))) return true;
     }
     await sleep(220);
   }
@@ -888,8 +895,8 @@ async function openCoupangHappyTalkPage(context) {
     timeout: 30000,
   });
   await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
-  await sleep(450);
-  const ready = await waitForHappyTalkReady(page, 12000);
+  await sleep(900);
+  const ready = await waitForHappyTalkReady(page, 20000);
   await traceHappyTalk(page, 'open-ready', {
     elapsedMs: Date.now() - openedAt,
     url: COUPANG_REVIEW_CARE_URL,
@@ -923,29 +930,46 @@ async function submitCoupangBlind(context, review) {
 
     const steps = [
       {
-        choices: ['신규 상담 시작하기', '신규상담 시작하기', '상담 시작하기', '새 상담 시작하기'],
-        nextChoices: ['리뷰 블라인드', '리뷰 게시중단', '게시중단요청', '게시중단 요청', '리뷰 신고'],
-      },
-      {
-        choices: ['리뷰 블라인드/게시중단 요청', '리뷰 블라인드', '리뷰 게시중단', '게시중단요청', '게시중단 요청', '리뷰 신고'],
-        nextChoices: ['블라인드만 신청', '블라인드 신청', '블라인드만', '게시중단 요청만 신청', '게시중단요청만 신청'],
-      },
-      {
-        choices: ['블라인드만 신청', '블라인드 신청', '블라인드만', '게시중단 요청만 신청', '게시중단요청만 신청'],
-        nextChoices: ['본인 신청', '본인이 신청', '직접 신청', '직접 접수'],
-      },
-      {
-        choices: ['본인 신청', '본인이 신청', '직접 신청', '직접 접수'],
-        nextChoices: ['간편하게 접수하기', '간편 접수', '간편하게 접수', '접수하기'],
-      },
-      {
-        choices: ['간편하게 접수하기', '간편 접수', '간편하게 접수', '접수하기'],
-        nextChoices: ['계속신청하기', '계속 신청하기', '이어서 진행하기', '계속 진행'],
-      },
-      {
-        choices: ['계속신청하기', '계속 신청하기', '이어서 진행하기', '계속 진행'],
-        nextChoices: ['스토어', '사업자', '가게', '매장', '아이디'],
+        choices: ['신규 상담 시작하기', '신규상담 시작하기', '상담 시작하기', '새 상담 시작하기', '상담시작', '시작하기', '새 상담', '상담 시작'],
+        nextChoices: ['리뷰 블라인드', '리뷰 게시중단', '게시중단요청', '게시중단 요청', '리뷰 신고', '블라인드', '리뷰관련', '리뷰 관련'],
+        timeout: 15000,
         nextTimeout: 15000,
+        verifyChange: false,
+      },
+      {
+        choices: ['리뷰 블라인드/게시중단 요청', '리뷰 블라인드', '리뷰 게시중단', '게시중단요청', '게시중단 요청', '리뷰 신고', '블라인드/게시중단', '블라인드 요청', '게시중단', '리뷰블라인드'],
+        nextChoices: ['블라인드만 신청', '블라인드 신청', '블라인드만', '게시중단 요청만 신청', '게시중단요청만 신청', '블라인드만신청', '블라인드신청'],
+        timeout: 12000,
+        nextTimeout: 12000,
+        verifyChange: false,
+      },
+      {
+        choices: ['블라인드만 신청', '블라인드 신청', '블라인드만', '게시중단 요청만 신청', '게시중단요청만 신청', '블라인드만신청', '블라인드신청'],
+        nextChoices: ['본인 신청', '본인이 신청', '직접 신청', '직접 접수', '본인신청', '직접신청'],
+        timeout: 12000,
+        nextTimeout: 12000,
+        verifyChange: false,
+      },
+      {
+        choices: ['본인 신청', '본인이 신청', '직접 신청', '직접 접수', '본인신청', '직접신청'],
+        nextChoices: ['간편하게 접수하기', '간편 접수', '간편하게 접수', '접수하기', '간편접수', '간편하게접수하기'],
+        timeout: 12000,
+        nextTimeout: 12000,
+        verifyChange: false,
+      },
+      {
+        choices: ['간편하게 접수하기', '간편 접수', '간편하게 접수', '접수하기', '간편접수', '간편하게접수하기'],
+        nextChoices: ['계속신청하기', '계속 신청하기', '이어서 진행하기', '계속 진행', '계속진행', '이어서진행하기'],
+        timeout: 12000,
+        nextTimeout: 12000,
+        verifyChange: false,
+      },
+      {
+        choices: ['계속신청하기', '계속 신청하기', '이어서 진행하기', '계속 진행', '계속진행', '이어서진행하기'],
+        nextChoices: ['스토어', '사업자', '가게', '매장', '아이디', '스토어 아이디', '쿠팡이츠 스토어'],
+        timeout: 12000,
+        nextTimeout: 18000,
+        verifyChange: false,
       },
     ];
 

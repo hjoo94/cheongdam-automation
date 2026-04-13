@@ -444,7 +444,13 @@ async function findBestLogMatch(reviewMeta = {}) {
   const dateOnlyMatches = [];
   const idStrongMatches = [];
   const anyNicknameEntries = [];
-  const FUZZY_MIN = 0.48;
+  const FUZZY_MIN = (() => {
+    const textLen = targetReviewTexts.reduce((max, t) => Math.max(max, t.length), 0);
+    if (textLen <= 10) return 0.2;
+    if (textLen <= 20) return 0.3;
+    if (textLen <= 40) return 0.4;
+    return 0.48;
+  })();
   const diagnostics = {
     scannedFiles: 0,
     scannedEntries: 0,
@@ -500,7 +506,7 @@ async function findBestLogMatch(reviewMeta = {}) {
           });
         }
 
-        if (!hasNickname && !(sameReviewId && targetReviewId) && !sameText) continue;
+        if (!hasNickname && !sameReviewId && !sameText && bestTextSimilarity < FUZZY_MIN) continue;
         if (sameText || (sameReviewId && hasNickname)) {
           exactMatches.push({
             ...item,
@@ -552,9 +558,16 @@ async function findBestLogMatch(reviewMeta = {}) {
   } else if (!targetReviewId && targetReviewTexts.length === 0 && dateOnlyMatches.length === 1) {
     matched = dateOnlyMatches[0];
     strategy = 'dateOnlyUnique';
-  } else if (anyNicknameEntries.length > 0) {
-    matched = pickLatestByFileAndOrder(anyNicknameEntries);
-    strategy = 'latestNicknameFallback';
+  } else if (anyNicknameEntries.length > 0 && targetReviewDate) {
+    const sameMonthEntries = anyNicknameEntries.filter((item) => {
+      const itemMonth = extractYearMonth(item.reviewDate || '');
+      const targetMonth = extractYearMonth(targetReviewDate);
+      return itemMonth && targetMonth && itemMonth === targetMonth;
+    });
+    if (sameMonthEntries.length > 0) {
+      matched = pickLatestByFileAndOrder(sameMonthEntries);
+      strategy = 'latestNicknameFallback';
+    }
   }
 
   writeMailTrace('match.result', {
@@ -1882,14 +1895,20 @@ async function processOneMail(mailPage, context, reviewMeta = {}) {
 
   const finalNickname = normalizeText(matched?.nickname || '');
   if (!finalNickname) {
-    const error = new Error('정확히 매칭된 리뷰 로그에 닉네임이 없습니다.');
-    appendUserError('naver.nickname_exact_match_failed', error, {
+    console.log('[경고] 매칭된 로그에 닉네임이 없음. 로그 기록 후 skip 처리');
+    writeMailTrace('nickname.missing', {
+      reviewId: normalizedReviewId,
+      reviewDate: normalizedReviewDate,
+      reviewText: normalizedReviewText,
+      matched,
+    });
+    appendUserError('naver.nickname_exact_match_failed', new Error('닉네임 없음'), {
       reviewDate: normalizedReviewDate,
       reviewId: normalizedReviewId,
       reviewText: normalizedReviewText,
       matched,
     });
-    throw error;
+    throw new Error('정확히 매칭된 리뷰 로그에 닉네임이 없습니다.');
   }
 
   writeMailTrace('nickname.final', {
