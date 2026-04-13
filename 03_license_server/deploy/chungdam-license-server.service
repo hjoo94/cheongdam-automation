@@ -1,0 +1,19 @@
+[Unit]
+Description=Chungdam License Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/chungdam-license-server
+EnvironmentFile=/opt/chungdam-license-server/.env
+ExecStart=/usr/bin/node /opt/chungdam-license-server/server.js
+Restart=always
+RestartSec=5
+User=ubuntu
+Group=ubuntu
+KillSignal=SIGINT
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

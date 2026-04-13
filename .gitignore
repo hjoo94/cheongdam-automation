@@ -1,0 +1,27 @@
+# 민감 파일
+.env
+*.pem
+ssh.txt
+licenses.json
+**/licenses.json
+**/.deploy/
+**/server.env
+.deploy-update/
+*.tar.gz
+
+# 빌드 결과물
+node_modules/
+dist/
+dist-secure-test/
+out/
+*.exe
+*.dmg
+*.blockmap
+
+# 로그
+*.log
+logs/
+
+# 임시
+.DS_Store
+Thumbs.db

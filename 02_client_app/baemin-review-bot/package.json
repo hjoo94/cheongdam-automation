@@ -1,0 +1,74 @@
+{
+  "name": "chungdam-bot",
+  "version": "1.0.29",
+  "description": "Cheongdam review automation client",
+  "main": "app/main.js",
+  "author": "chungdam",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64",
+    "build:win": "electron-builder --win --x64",
+    "test": "node scripts/smoke-tests.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "playwright": "^1.44.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.chungdam.bot",
+    "productName": "Cheongdam Bot",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/**/*",
+      "!dist-secure-test/**/*",
+      "!build/**/*",
+      "!logs/**/*",
+      "!tmp/**/*",
+      "!.deploy/**/*",
+      "!.deploy-update/**/*",
+      "!*.pem",
+      "!ssh.txt",
+      "!*.env",
+      "!.env",
+      "!SERVER_DEPLOY_RESULT.md",
+      "!*.xls",
+      "!*.xlsx",
+      "!*.csv",
+      "!*.pdf",
+      "!node_modules/.cache/**/*",
+      "!.git/**/*"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "app/security.js",
+      "bot/**/*",
+      "platforms/**/*",
+      "utils/**/*",
+      "gptClient.js",
+      "index.js",
+      "node_modules/dotenv/**/*",
+      "node_modules/playwright/**/*",
+      "node_modules/playwright-core/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Cheongdam Bot",
+      "include": "installer.nsh"
+    }
+  }
+}

@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>청담봇 라이센스 관리자</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "Pretendard", "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(0, 122, 255, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(109, 40, 217, 0.18), transparent 30%),
+        linear-gradient(180deg, #0a1020 0%, #0b1224 100%);
+      color: #e5eefc;
+      min-height: 100%;
+    }
+
+    .shell {
+      padding: 28px;
+      min-height: 100vh;
+    }
+
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding: 28px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      backdrop-filter: blur(18px);
+      border-radius: 24px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.32);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      color: #a9bbda;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 440px 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(10, 16, 32, 0.72);
+      box-shadow: 0 14px 34px rgba(0,0,0,0.28);
+      backdrop-filter: blur(12px);
+      padding: 22px;
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin: 0 0 18px;
+      letter-spacing: -0.03em;
+    }
+
+    .fields {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #bcd0ef;
+    }
+
+    .field input {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.08);
+      outline: none;
+      border-radius: 16px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.04);
+      color: #eef4ff;
+      font-size: 14px;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .check-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #3b82f6;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 16px;
+      padding: 14px 18px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .btn.primary {
+      color: white;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      box-shadow: 0 14px 28px rgba(37, 99, 235, 0.28);
+    }
+
+    .btn.secondary {
+      color: #dce8ff;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .btn.danger {
+      color: #fff;
+      background: #dc2626;
+      border: 1px solid #b91c1c;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .result-box {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      line-height: 1.7;
+      font-size: 14px;
+      color: #dce8ff;
+      word-break: break-word;
+    }
+
+    .status {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #9fc0ff;
+      min-height: 20px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar input {
+      flex: 1;
+      min-width: 240px;
+      border: 1px solid rgba(255,255,255,0.08);
+      outline: none;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.04);
+      color: #eef4ff;
+      font-size: 14px;
+    }
+
+    .list-wrap {
+      display: grid;
+      gap: 12px;
+      max-height: 720px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .license-item {
+      border-radius: 20px;
+      padding: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .license-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .license-name {
+      font-size: 17px;
+      font-weight: 800;
+      color: #f4f8ff;
+    }
+
+    .license-key {
+      font-size: 13px;
+      color: #8fb1ff;
+      word-break: break-word;
+      margin-top: 4px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 74px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      background: rgba(148, 163, 184, 0.14);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      color: #dbe7fb;
+    }
+
+    .pill.ok {
+      background: rgba(34, 197, 94, 0.14);
+      border-color: rgba(34, 197, 94, 0.28);
+      color: #bbf7d0;
+    }
+
+    .pill.off {
+      background: rgba(239, 68, 68, 0.14);
+      border-color: rgba(239, 68, 68, 0.28);
+      color: #fecaca;
+    }
+
+    .license-meta {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      color: #b7c8e8;
+      margin-bottom: 12px;
+    }
+
+    .feature-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .feature-badge {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.07);
+      color: #dce8ff;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .license-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 1100px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div>
+        <h1>청담봇 라이센스 관리자</h1>
+        <p>고객 라이센스 생성, 비활성화, 연장 관리를 위한 내부 전용 프로그램</p>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h2 class="card-title">라이센스 생성</h2>
+
+        <div class="fields">
+          <div class="field">
+            <label for="serverBaseUrl">서버 주소</label>
+            <input id="serverBaseUrl" type="text" placeholder="예: http://43.203.124.132:4300" />
+          </div>
+
+          <div class="field">
+            <label for="adminSecret">관리자 시크릿</label>
+            <input id="adminSecret" type="text" placeholder="관리자 API 시크릿" />
+          </div>
+
+          <div class="field">
+            <label for="customerName">고객명</label>
+            <input id="customerName" type="text" placeholder="예: 청담각 강남본점" />
+          </div>
+
+          <div class="field">
+            <label for="days">사용일수</label>
+            <input id="days" type="number" placeholder="예: 30" />
+          </div>
+
+          <div class="field">
+            <label>기능 선택</label>
+            <div class="check-list">
+              <label class="check-item"><input type="checkbox" id="baeminReplyBasic" /> 배민 기본 답글</label>
+              <label class="check-item"><input type="checkbox" id="baeminReplyPremium" checked /> 배민 프리미엄 답글</label>
+              <label class="check-item"><input type="checkbox" id="baeminBlind" /> 배민 블라인드</label>
+              <label class="check-item"><input type="checkbox" id="coupangReplyBasic" /> 쿠팡 기본 답글</label>
+              <label class="check-item"><input type="checkbox" id="coupangReplyPremium" /> 쿠팡 프리미엄 답글</label>
+              <label class="check-item"><input type="checkbox" id="coupangBlind" /> 쿠팡 블라인드</label>
+              <label class="check-item"><input type="checkbox" id="naverMail" /> 네이버 메일</label>
+              <label class="check-item"><input type="checkbox" id="financeAnalysis" /> 재무 분석</label>
+              <label class="check-item"><input type="checkbox" id="threadsMarketing" /> 스레드 GPT 초안</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn secondary" id="saveConfigBtn">서버 설정 저장</button>
+          <button class="btn secondary" id="checkServerBtn">연결 확인</button>
+          <button class="btn primary" id="createBtn">라이센스 생성</button>
+          <button class="btn secondary" id="refreshBtn">목록 새로고침</button>
+        </div>
+
+        <div class="result-box" id="resultBox">
+          생성된 라이센스 정보가 여기에 표시됩니다.
+        </div>
+
+        <div class="status" id="statusText"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">기존 라이센스 목록</h2>
+
+        <div class="toolbar">
+          <input id="searchInput" type="text" placeholder="고객명 또는 라이센스 키 검색" />
+          <button class="btn secondary" id="searchBtn">검색</button>
+        </div>
+
+        <div class="list-wrap" id="licenseList"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    let allLicenses = [];
+
+    function getAdminConfig() {
+      return {
+        serverBaseUrl: $('serverBaseUrl').value.trim(),
+        adminSecret: $('adminSecret').value.trim(),
+      };
+    }
+
+    function applyAdminConfig(config = {}) {
+      $('serverBaseUrl').value = config.serverBaseUrl || 'http://43.203.124.132:4300';
+      $('adminSecret').value = config.adminSecret || '';
+    }
+
+    function formatDate(value) {
+      if (!value) return '-';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleString('ko-KR');
+    }
+
+    function getFeatures() {
+      return {
+        baeminReply: $('baeminReplyBasic').checked || $('baeminReplyPremium').checked,
+        baeminReplyBasic: $('baeminReplyBasic').checked,
+        baeminReplyPremium: $('baeminReplyPremium').checked,
+        baeminBlind: $('baeminBlind').checked,
+        coupangReply: $('coupangReplyBasic').checked || $('coupangReplyPremium').checked,
+        coupangReplyBasic: $('coupangReplyBasic').checked,
+        coupangReplyPremium: $('coupangReplyPremium').checked,
+        coupangBlind: $('coupangBlind').checked,
+        naverMail: $('naverMail').checked,
+        financeAnalysis: $('financeAnalysis').checked,
+        threadsMarketing: $('threadsMarketing').checked,
+      };
+    }
+
+    function featureLabels(features = {}) {
+      const map = [
+        ['baeminReplyBasic', '배민 기본 답글'],
+        ['baeminReplyPremium', '배민 프리미엄 답글'],
+        ['baeminBlind', '배민 블라인드'],
+        ['coupangReplyBasic', '쿠팡 기본 답글'],
+        ['coupangReplyPremium', '쿠팡 프리미엄 답글'],
+        ['coupangBlind', '쿠팡 블라인드'],
+        ['naverMail', '네이버 메일'],
+        ['financeAnalysis', '재무 분석'],
+        ['threadsMarketing', '스레드 GPT 초안'],
+      ];
+
+      return map
+        .filter(([key]) => !!features[key])
+        .map(([, label]) => label);
+    }
+
+    function setStatus(text, isError = false) {
+      const el = $('statusText');
+      el.textContent = text || '';
+      el.style.color = isError ? '#fca5a5' : '#9fc0ff';
+    }
+
+    async function saveAdminConfig(silent = false) {
+      const res = await window.adminApi.saveAdminConfig(getAdminConfig());
+
+      if (!res.ok) {
+        if (!silent) {
+          setStatus('서버 설정 저장 실패: ' + (res.error || ''), true);
+        }
+        return false;
+      }
+
+      applyAdminConfig(res.config || {});
+      if (!silent) {
+        setStatus('서버 설정 저장 완료');
+      }
+      return true;
+    }
+
+    async function checkServerConnection() {
+      const res = await window.adminApi.checkAdminServer(getAdminConfig());
+
+      if (!res.ok) {
+        setStatus('서버 연결 실패: ' + (res.error || ''), true);
+        return;
+      }
+
+      applyAdminConfig(res.config || {});
+      setStatus('서버 연결 정상');
+    }
+
+    function renderResult(license) {
+      if (!license) {
+        $('resultBox').textContent = '생성된 라이센스 정보가 여기에 표시됩니다.';
+        return;
+      }
+
+      $('resultBox').innerHTML = `
+        <div><strong>고객명:</strong> ${license.customerName}</div>
+        <div><strong>라이센스 키:</strong> ${license.licenseKey}</div>
+        <div><strong>발급일:</strong> ${formatDate(license.issuedAt)}</div>
+        <div><strong>만료일:</strong> ${formatDate(license.expiresAt)}</div>
+        <div><strong>기능:</strong> ${featureLabels(license.features).join(', ') || '-'}</div>
+        <div style="margin-top:12px;">
+          <button class="btn secondary" onclick="copyLicenseKey('${license.licenseKey}')">키 복사</button>
+        </div>
+      `;
+    }
+
+    async function copyLicenseKey(key) {
+      const res = await window.adminApi.copyText(key);
+      if (res.ok) {
+        setStatus('라이센스 키 복사 완료');
+      } else {
+        setStatus('복사 실패: ' + (res.error || ''), true);
+      }
+    }
+
+    window.copyLicenseKey = copyLicenseKey;
+
+    function renderLicenses(list) {
+      const wrap = $('licenseList');
+
+      if (!list.length) {
+        wrap.innerHTML = `<div class="license-item">등록된 라이센스가 없습니다.</div>`;
+        return;
+      }
+
+      wrap.innerHTML = list.map((item) => {
+        const enabledClass = item.isEnabled === false ? 'off' : 'ok';
+        const enabledText = item.isEnabled === false ? '비활성' : '사용중';
+        const features = featureLabels(item.features);
+
+        return `
+          <div class="license-item">
+            <div class="license-top">
+              <div>
+                <div class="license-name">${item.customerName || '-'}</div>
+                <div class="license-key">${item.licenseKey || '-'}</div>
+              </div>
+              <div class="pill ${enabledClass}">${enabledText}</div>
+            </div>
+
+            <div class="license-meta">
+              <div><strong>발급일:</strong> ${formatDate(item.issuedAt)}</div>
+              <div><strong>만료일:</strong> ${formatDate(item.expiresAt)}</div>
+            </div>
+
+            <div class="feature-row">
+              ${features.length
+                ? features.map((label) => `<span class="feature-badge">${label}</span>`).join('')
+                : `<span class="feature-badge">기능 없음</span>`}
+            </div>
+
+            <div class="license-actions">
+              <button class="btn secondary" onclick="copyLicenseKey('${item.licenseKey}')">키 복사</button>
+              <button class="btn secondary" onclick="toggleLicense('${item.licenseKey}', ${item.isEnabled === false ? 'true' : 'false'})">
+                ${item.isEnabled === false ? '활성화' : '비활성화'}
+              </button>
+              <button class="btn secondary" onclick="extendLicense('${item.licenseKey}')">7일 연장</button>
+              <button class="btn danger" onclick="deleteLicense('${item.licenseKey}')">삭제</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadLicenses() {
+      await saveAdminConfig(true);
+      const res = await window.adminApi.getLicenses();
+
+      if (!res.ok) {
+        setStatus('목록 불러오기 실패: ' + (res.error || ''), true);
+        return;
+      }
+
+      allLicenses = res.licenses || [];
+      applySearch();
+    }
+
+    function applySearch() {
+      const keyword = String($('searchInput').value || '').trim().toLowerCase();
+
+      if (!keyword) {
+        renderLicenses(allLicenses);
+        return;
+      }
+
+      const filtered = allLicenses.filter((item) => {
+        return (
+          String(item.customerName || '').toLowerCase().includes(keyword) ||
+          String(item.licenseKey || '').toLowerCase().includes(keyword)
+        );
+      });
+
+      renderLicenses(filtered);
+    }
+
+    async function createLicense() {
+      const configSaved = await saveAdminConfig(true);
+      if (!configSaved) return;
+
+      const customerName = $('customerName').value.trim();
+      const days = Number($('days').value.trim());
+
+      const res = await window.adminApi.createLicense({
+        customerName,
+        days,
+        features: getFeatures(),
+      });
+
+      if (!res.ok) {
+        setStatus(res.error || '라이센스 생성 실패', true);
+        return;
+      }
+
+      renderResult(res.license);
+      setStatus('라이센스 생성 완료');
+      await loadLicenses();
+    }
+
+    async function toggleLicense(licenseKey, isEnabled) {
+      const configSaved = await saveAdminConfig(true);
+      if (!configSaved) return;
+
+      const res = await window.adminApi.toggleLicenseEnabled(licenseKey, isEnabled);
+
+      if (!res.ok) {
+        setStatus(res.error || '상태 변경 실패', true);
+        return;
+      }
+
+      setStatus(isEnabled ? '라이센스 활성화 완료' : '라이센스 비활성화 완료');
+      await loadLicenses();
+    }
+
+    async function extendLicense(licenseKey) {
+      const configSaved = await saveAdminConfig(true);
+      if (!configSaved) return;
+
+      const res = await window.adminApi.extendLicenseDays(licenseKey, 7);
+
+      if (!res.ok) {
+        setStatus(res.error || '연장 실패', true);
+        return;
+      }
+
+      setStatus('7일 연장 완료');
+      await loadLicenses();
+    }
+
+    async function deleteLicense(licenseKey) {
+      const configSaved = await saveAdminConfig(true);
+      if (!configSaved) return;
+
+      const res = await window.adminApi.deleteLicense(licenseKey);
+
+      if (!res.ok) {
+        setStatus(res.error || '삭제 실패', true);
+        return;
+      }
+
+      setStatus('라이센스 삭제 완료');
+      await loadLicenses();
+    }
+
+    window.toggleLicense = toggleLicense;
+    window.extendLicense = extendLicense;
+    window.deleteLicense = deleteLicense;
+
+    if (typeof window.adminApi.onUpdateStatus === 'function') {
+      window.adminApi.onUpdateStatus((message) => setStatus(message));
+    }
+
+    $('saveConfigBtn').addEventListener('click', saveAdminConfig);
+    $('checkServerBtn').addEventListener('click', checkServerConnection);
+    $('createBtn').addEventListener('click', createLicense);
+    $('refreshBtn').addEventListener('click', loadLicenses);
+    $('searchBtn').addEventListener('click', applySearch);
+    $('searchInput').addEventListener('input', applySearch);
+    $('baeminReplyBasic').addEventListener('change', () => {
+      if ($('baeminReplyBasic').checked) $('baeminReplyPremium').checked = false;
+    });
+    $('baeminReplyPremium').addEventListener('change', () => {
+      if ($('baeminReplyPremium').checked) $('baeminReplyBasic').checked = false;
+    });
+    $('coupangReplyBasic').addEventListener('change', () => {
+      if ($('coupangReplyBasic').checked) $('coupangReplyPremium').checked = false;
+    });
+    $('coupangReplyPremium').addEventListener('change', () => {
+      if ($('coupangReplyPremium').checked) $('coupangReplyBasic').checked = false;
+    });
+
+    (async () => {
+      const configRes = await window.adminApi.loadAdminConfig();
+      if (configRes?.ok) {
+        applyAdminConfig(configRes.config || {});
+      }
+
+      await loadLicenses();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,3016 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>청담봇</title>
+  <style>
+    :root {
+      --bg-1: #060b16;
+      --bg-2: #0b1220;
+      --bg-3: #10192d;
+      --panel: rgba(11, 18, 32, 0.76);
+      --panel-strong: rgba(12, 20, 37, 0.9);
+      --panel-soft: rgba(255, 255, 255, 0.04);
+      --line: rgba(255, 255, 255, 0.08);
+      --line-strong: rgba(255, 255, 255, 0.13);
+      --text-1: #f5f8ff;
+      --text-2: #d7e4ff;
+      --text-3: #9eb1d3;
+      --text-4: #7f93b8;
+      --blue-1: #60a5fa;
+      --blue-2: #2563eb;
+      --blue-3: #1d4ed8;
+      --violet-1: #8b5cf6;
+      --violet-2: #6d28d9;
+      --green-1: #22c55e;
+      --green-2: #16a34a;
+      --red-1: #ef4444;
+      --red-2: #dc2626;
+      --amber-1: #f59e0b;
+      --amber-2: #d97706;
+      --shadow-xl: 0 30px 80px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 18px 40px rgba(0, 0, 0, 0.3);
+      --radius-xl: 30px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: "Pretendard", "Segoe UI", Arial, sans-serif;
+      color: var(--text-1);
+      background:
+        radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.2), transparent 28%),
+        radial-gradient(circle at 100% 0%, rgba(109, 40, 217, 0.18), transparent 24%),
+        radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.09), transparent 32%),
+        linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 42%, #0d1424 100%);
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.55), transparent 95%);
+      opacity: 0.35;
+    }
+
+    .shell {
+      width: min(1500px, calc(100vw - 36px));
+      margin: 0 auto;
+      padding: 28px 0 34px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 24px;
+      padding: 30px 32px;
+      border-radius: 34px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.09), rgba(255,255,255,0.035)),
+        linear-gradient(180deg, rgba(16, 25, 45, 0.85), rgba(11, 18, 32, 0.9));
+      box-shadow: var(--shadow-xl);
+      backdrop-filter: blur(20px);
+      isolation: isolate;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(96,165,250,0.38), rgba(255,255,255,0.06), rgba(139,92,246,0.28));
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -100px;
+      top: -120px;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(96,165,250,0.22), transparent 62%);
+      filter: blur(4px);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .hero-left {
+      min-width: 0;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #d9e7ff;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #60a5fa, #8b5cf6);
+      box-shadow: 0 0 18px rgba(96,165,250,0.75);
+      flex: 0 0 auto;
+    }
+
+    .hero-left h1 {
+      margin: 0;
+      font-size: clamp(34px, 4vw, 46px);
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      line-height: 1.04;
+    }
+
+    .hero-left p {
+      margin: 12px 0 0;
+      color: var(--text-3);
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 760px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .support-btn,
+    .danger-btn,
+    .pick-btn,
+    .secondary-btn,
+    .primary-btn {
+      position: relative;
+      border: 0;
+      border-radius: 16px;
+      padding: 14px 18px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      white-space: nowrap;
+    }
+
+    .support-btn,
+    .danger-btn {
+      padding: 14px 20px;
+    }
+
+    .support-btn {
+      color: #fff;
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      box-shadow: 0 14px 28px rgba(245, 158, 11, 0.28);
+    }
+
+    .danger-btn {
+      color: #fff;
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+      box-shadow: 0 14px 28px rgba(239, 68, 68, 0.24);
+    }
+
+    .pick-btn,
+    .secondary-btn {
+      color: #e4eeff;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.05));
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .primary-btn {
+      color: white;
+      background: linear-gradient(135deg, var(--blue-2), #3b82f6);
+      box-shadow: 0 16px 34px rgba(37, 99, 235, 0.32);
+    }
+
+    .support-btn:hover,
+    .danger-btn:hover,
+    .pick-btn:hover,
+    .secondary-btn:hover,
+    .primary-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.04);
+    }
+
+    .support-btn:active,
+    .danger-btn:active,
+    .pick-btn:active,
+    .secondary-btn:active,
+    .primary-btn:active {
+      transform: translateY(0);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.02fr 1.38fr;
+      gap: 20px;
+      align-items: start;
+      margin-bottom: 20px;
+    }
+
+    .quick-nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 0 0 20px;
+    }
+
+    .quick-nav a {
+      color: var(--text-2);
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .analysis-card {
+      margin-bottom: 20px;
+    }
+
+    .analysis-top {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .analysis-toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .analysis-toolbar select {
+      min-width: 180px;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-1);
+      outline: none;
+    }
+
+    .analysis-month-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .analysis-month-card {
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .analysis-month-card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .analysis-month-card span {
+      display: block;
+      color: var(--text-3);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .analysis-stat {
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.035));
+    }
+
+    .analysis-stat-label {
+      font-size: 12px;
+      color: var(--text-4);
+      margin-bottom: 8px;
+    }
+
+    .analysis-stat-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-1);
+    }
+
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .analysis-box {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .analysis-box h3 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      color: var(--text-2);
+    }
+
+    .analysis-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .analysis-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      color: var(--text-2);
+      font-size: 13px;
+    }
+
+    .analysis-row strong {
+      color: var(--text-1);
+    }
+
+    .analysis-empty {
+      color: var(--text-4);
+      font-size: 13px;
+    }
+
+    .analysis-review-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .analysis-review-item {
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.035);
+    }
+
+    .analysis-review-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    .analysis-review-body {
+      color: var(--text-2);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .left-stack {
+      display: grid;
+      gap: 20px;
+    }
+
+    .finance-card {
+      margin-top: 20px;
+    }
+
+    .finance-toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      margin-bottom: 18px;
+    }
+
+    .finance-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .finance-stat {
+      border-radius: 18px;
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(10, 24, 41, 0.9), rgba(6, 17, 30, 0.92));
+      border: 1px solid rgba(110, 168, 255, 0.14);
+    }
+
+    .finance-stat-label {
+      color: var(--text-2);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .finance-stat-value {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #f5fbff;
+    }
+
+    .finance-stat-value.negative {
+      color: #ff8b8b;
+    }
+
+    .finance-stat-value.positive {
+      color: #86efac;
+    }
+
+    .finance-layout {
+      display: grid;
+      grid-template-columns: 1.25fr 0.95fr;
+      gap: 16px;
+    }
+
+    .finance-panel {
+      border-radius: 20px;
+      padding: 18px;
+      background: rgba(8, 17, 29, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .finance-panel h3 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .finance-table {
+      display: grid;
+      gap: 10px;
+    }
+
+    .finance-table-row {
+      display: grid;
+      grid-template-columns: 90px repeat(7, minmax(0, 1fr));
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-1);
+      font-size: 13px;
+    }
+
+    .finance-table-row.head {
+      color: var(--text-2);
+      background: rgba(255, 255, 255, 0.05);
+      font-weight: 700;
+    }
+
+    .finance-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .finance-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--text-1);
+      font-size: 13px;
+    }
+
+    .finance-list-item strong {
+      color: #f5fbff;
+    }
+
+    .finance-empty {
+      padding: 18px;
+      border-radius: 16px;
+      text-align: center;
+      color: var(--text-2);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .finance-assumption {
+      margin-top: 14px;
+      color: var(--text-2);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
+        var(--panel);
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(16px);
+      padding: 24px;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), transparent 24%);
+      opacity: 0.9;
+    }
+
+    .card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .license-card {
+      background:
+        radial-gradient(circle at top right, rgba(59,130,246,0.12), transparent 24%),
+        radial-gradient(circle at left bottom, rgba(109,40,217,0.08), transparent 28%),
+        linear-gradient(180deg, rgba(13, 22, 40, 0.92), rgba(11, 18, 32, 0.82));
+    }
+
+    .card-title {
+      margin: 0 0 18px;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: #f8fbff;
+    }
+
+    .subtitle {
+      margin: 0 0 12px;
+      font-size: 12px;
+      color: var(--text-4);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .license-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .license-status-panel {
+      display: grid;
+      gap: 12px;
+    }
+
+    .license-kv,
+    .feature-mini-list {
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .license-kv {
+      display: grid;
+      gap: 10px;
+      padding: 18px;
+    }
+
+    .license-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      font-size: 14px;
+    }
+
+    .license-line .label {
+      color: #a7badb;
+      font-weight: 700;
+    }
+
+    .license-line .value {
+      color: #f6f9ff;
+      font-weight: 800;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .license-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 88px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.01em;
+      background: rgba(148, 163, 184, 0.14);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      color: #dbe7fb;
+    }
+
+    .license-pill.ok {
+      background: rgba(34, 197, 94, 0.14);
+      border-color: rgba(34, 197, 94, 0.3);
+      color: #bbf7d0;
+    }
+
+    .license-pill.error {
+      background: rgba(239, 68, 68, 0.14);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #fecaca;
+    }
+
+    .license-pill.warn {
+      background: rgba(245, 158, 11, 0.14);
+      border-color: rgba(245, 158, 11, 0.28);
+      color: #fde68a;
+    }
+
+    .feature-mini-list {
+      display: grid;
+      gap: 8px;
+      padding: 18px;
+    }
+
+    .feature-mini-title {
+      margin-bottom: 4px;
+      font-size: 12px;
+      color: #9fb3d4;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .feature-mini-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 14px;
+      color: #d8e5fb;
+      padding: 6px 0;
+    }
+
+    .feature-mini-badge {
+      min-width: 44px;
+      text-align: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      background: rgba(148, 163, 184, 0.14);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      color: #dbe7fb;
+    }
+
+    .feature-mini-badge.on {
+      background: rgba(34, 197, 94, 0.14);
+      border-color: rgba(34, 197, 94, 0.28);
+      color: #bbf7d0;
+    }
+
+    .feature-mini-badge.off {
+      background: rgba(239, 68, 68, 0.14);
+      border-color: rgba(239, 68, 68, 0.28);
+      color: #fecaca;
+    }
+
+    .function-list {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: background 0.18s ease, transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+
+    .check-item:hover {
+      background: rgba(255,255,255,0.055);
+      border-color: rgba(255,255,255,0.1);
+      transform: translateY(-1px);
+    }
+
+    .check-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #3b82f6;
+    }
+
+    .check-item.locked {
+      opacity: 0.6;
+      border-color: rgba(239, 68, 68, 0.18);
+    }
+
+    .check-item.locked:hover {
+      transform: none;
+      background: rgba(255,255,255,0.035);
+    }
+
+    .check-item.locked .check-title::after {
+      content: "  (사용불가)";
+      color: #fca5a5;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .check-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .check-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #f4f8ff;
+    }
+
+    .check-desc {
+      font-size: 13px;
+      color: #91a5c7;
+      line-height: 1.45;
+    }
+
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 800;
+      color: #bfd1ef;
+      letter-spacing: -0.01em;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      outline: none;
+      border-radius: 18px;
+      padding: 15px 16px;
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #eef4ff;
+      font-size: 14px;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      border-color: rgba(96, 165, 250, 0.65);
+      background: rgba(255,255,255,0.06);
+      box-shadow:
+        0 0 0 4px rgba(59, 130, 246, 0.16),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .field textarea {
+      min-height: 148px;
+      resize: vertical;
+      line-height: 1.58;
+    }
+
+    .field input::placeholder,
+    .field textarea::placeholder {
+      color: #7388ad;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .field-row input {
+      flex: 1;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .log-card {
+      margin-top: 20px;
+      padding: 24px;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .status-chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 900;
+      color: #d7e7ff;
+      background: rgba(59,130,246,0.14);
+      border: 1px solid rgba(59,130,246,0.22);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    #log {
+      width: 100%;
+      min-height: 340px;
+      max-height: 460px;
+      overflow-y: auto;
+      border-radius: 22px;
+      padding: 18px;
+      background:
+        linear-gradient(180deg, rgba(2, 8, 18, 0.94), rgba(7, 16, 31, 0.98));
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #dce7fb;
+      font-size: 14px;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.03),
+        inset 0 -1px 0 rgba(255,255,255,0.02);
+    }
+
+    .tip {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #89a0c4;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 1180px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .fields,
+      .license-grid,
+      .finance-grid,
+      .finance-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .hero-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .shell {
+        width: calc(100vw - 20px);
+        padding-top: 16px;
+      }
+
+      .hero,
+      .card,
+      .log-card {
+        border-radius: 24px;
+      }
+
+      .hero {
+        padding: 22px 20px;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+      .actions,
+      .field-row,
+      .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .support-btn,
+      .danger-btn,
+      .pick-btn,
+      .secondary-btn,
+      .primary-btn {
+        width: 100%;
+      }
+    }
+
+    /* Customer release theme: clean Baemin-style operation screen */
+    :root {
+      --bg-1: #f4fbf8;
+      --bg-2: #eef8f4;
+      --bg-3: #ffffff;
+      --panel: #ffffff;
+      --panel-strong: #ffffff;
+      --panel-soft: #f5faf8;
+      --line: #dcebe6;
+      --line-strong: #bfded4;
+      --text-1: #17302b;
+      --text-2: #36534d;
+      --text-3: #668078;
+      --text-4: #8aa098;
+      --blue-1: #18b7a6;
+      --blue-2: #12b8a6;
+      --blue-3: #0f8f82;
+      --green-1: #24c875;
+      --green-2: #0ba95f;
+      --shadow-xl: 0 24px 70px rgba(12, 88, 74, 0.13);
+      --shadow-lg: 0 14px 36px rgba(12, 88, 74, 0.1);
+    }
+
+    html, body {
+      background:
+        radial-gradient(circle at 12% 0%, rgba(36, 200, 117, 0.18), transparent 28%),
+        radial-gradient(circle at 100% 10%, rgba(18, 184, 166, 0.13), transparent 24%),
+        linear-gradient(180deg, #f7fffc 0%, #eff9f5 100%);
+      color: var(--text-1);
+    }
+
+    body::before {
+      background:
+        linear-gradient(rgba(18,184,166,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(18,184,166,0.05) 1px, transparent 1px);
+      opacity: 0.45;
+    }
+
+    .hero,
+    .card,
+    .analysis-stat,
+    .analysis-box,
+    .analysis-month-card,
+    .finance-panel,
+    .finance-stat,
+    .license-status-panel,
+    .feature-mini-list {
+      background: rgba(255,255,255,0.94);
+      border-color: var(--line);
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero {
+      padding: 24px 28px;
+      border-radius: 28px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.96), rgba(238,250,245,0.96)),
+        radial-gradient(circle at 100% 0%, rgba(18,184,166,0.16), transparent 34%);
+    }
+
+    .hero::before {
+      background: linear-gradient(135deg, rgba(18,184,166,0.4), rgba(255,255,255,0.3), rgba(36,200,117,0.25));
+    }
+
+    .hero::after {
+      background: radial-gradient(circle, rgba(18,184,166,0.18), transparent 62%);
+    }
+
+    .brand-badge {
+      background: #e8faf4;
+      border-color: #c7eee2;
+      color: #0f766e;
+    }
+
+    .brand-dot {
+      background: linear-gradient(135deg, #12b8a6, #24c875);
+      box-shadow: 0 0 18px rgba(18,184,166,0.45);
+    }
+
+    .hero-left h1 {
+      color: #12352f;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #12b8a6, #24c875);
+      box-shadow: 0 14px 30px rgba(18,184,166,0.24);
+    }
+
+    .support-btn {
+      color: #12352f;
+      background: linear-gradient(135deg, #ffe66d, #ffd43b);
+      box-shadow: 0 12px 26px rgba(245, 158, 11, 0.18);
+    }
+
+    .pick-btn,
+    .secondary-btn {
+      color: #17413a;
+      background: #f4fbf8;
+      border: 1px solid #cfe9e1;
+      box-shadow: none;
+    }
+
+    input,
+    textarea,
+    select {
+      background: #fbfffd;
+      border-color: #cfe9e1;
+      color: #17302b;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #12b8a6;
+      box-shadow: 0 0 0 4px rgba(18,184,166,0.12);
+    }
+
+    .check-item {
+      background: #fbfffd;
+      border-color: #dcebe6;
+    }
+
+    .check-item:has(input:checked) {
+      border-color: #12b8a6;
+      background: #eafaf5;
+    }
+
+    .finance-stat,
+    .analysis-stat {
+      background: linear-gradient(180deg, #ffffff, #f5fbf8);
+    }
+
+    .finance-table-row,
+    .finance-list-item,
+    .analysis-row {
+      background: #f6fbf9;
+      border: 1px solid #e1efea;
+    }
+
+    #log {
+      background: #10231f;
+      border-color: #173b34;
+      color: #d8fff3;
+    }
+    /* 2026 readable operation UI override */
+    :root {
+      --bg-1: #f6f8fb;
+      --bg-2: #ffffff;
+      --bg-3: #eef3f8;
+      --panel: #ffffff;
+      --panel-strong: #ffffff;
+      --panel-soft: #f6f8fb;
+      --line: #d9e1ea;
+      --line-strong: #b9c7d6;
+      --text-1: #111827;
+      --text-2: #334155;
+      --text-3: #64748b;
+      --text-4: #7b8794;
+      --blue-1: #2563eb;
+      --blue-2: #0074e9;
+      --blue-3: #005cb9;
+      --green-1: #16a34a;
+      --green-2: #0f8a3a;
+      --red-1: #dc2626;
+      --red-2: #b91c1c;
+      --amber-1: #d97706;
+      --amber-2: #b45309;
+      --shadow-xl: 0 12px 34px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.07);
+      --radius-xl: 8px;
+      --radius-lg: 8px;
+      --radius-md: 8px;
+      --radius-sm: 8px;
+    }
+
+    html, body {
+      color: #111827;
+      background: #f6f8fb;
+      background-attachment: initial;
+      letter-spacing: 0;
+    }
+
+    body::before,
+    .hero::before,
+    .hero::after,
+    .card::after {
+      display: none;
+    }
+
+    .shell {
+      width: min(1480px, calc(100vw - 32px));
+      padding: 20px 0 28px;
+    }
+
+    .hero,
+    .card,
+    .license-card,
+    .analysis-stat,
+    .analysis-box,
+    .analysis-month-card,
+    .analysis-review-item,
+    .finance-stat,
+    .finance-panel,
+    .license-kv,
+    .feature-mini-list,
+    .check-item,
+    .result-box,
+    #log {
+      border-radius: 8px;
+      border: 1px solid #d9e1ea;
+      background: #ffffff;
+      color: #111827;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+      backdrop-filter: none;
+    }
+
+    .hero {
+      padding: 22px 24px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+
+    .brand-badge {
+      border-radius: 8px;
+      background: #eaf4ff;
+      border: 1px solid #b9dcff;
+      color: #005cb9;
+      letter-spacing: 0;
+    }
+
+    .brand-dot {
+      background: #0074e9;
+      box-shadow: none;
+    }
+
+    .hero-left h1 {
+      color: #111827;
+      font-size: 34px;
+      letter-spacing: 0;
+      line-height: 1.18;
+    }
+
+    .hero-left p,
+    .check-desc,
+    .analysis-empty,
+    .finance-assumption,
+    .license-line .label,
+    .feature-mini-title,
+    .analysis-stat-label,
+    .finance-stat-label,
+    .license-meta,
+    .status {
+      color: #64748b;
+    }
+
+    .grid {
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .left-stack,
+    .function-list,
+    .fields,
+    .analysis-list,
+    .finance-list,
+    .finance-table {
+      gap: 10px;
+    }
+
+    .card,
+    .log-card {
+      padding: 20px;
+    }
+
+    .card-title {
+      color: #111827;
+      font-size: 21px;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      color: #0074e9;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .support-btn,
+    .danger-btn,
+    .pick-btn,
+    .secondary-btn,
+    .primary-btn,
+    .btn {
+      border-radius: 8px;
+      padding: 12px 16px;
+      letter-spacing: 0;
+      box-shadow: none;
+    }
+
+    .primary-btn,
+    .btn.primary {
+      color: #ffffff;
+      background: #0074e9;
+    }
+
+    .secondary-btn,
+    .pick-btn,
+    .btn.secondary {
+      color: #111827;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+    }
+
+    .support-btn {
+      color: #111827;
+      background: #ffdd2d;
+    }
+
+    .danger-btn,
+    .btn.danger {
+      color: #ffffff;
+      background: #dc2626;
+    }
+
+    .support-btn:hover,
+    .danger-btn:hover,
+    .pick-btn:hover,
+    .secondary-btn:hover,
+    .primary-btn:hover,
+    .btn:hover {
+      transform: none;
+      filter: brightness(0.98);
+    }
+
+    .field label {
+      color: #334155;
+      font-size: 14px;
+    }
+
+    .field input,
+    .field textarea,
+    .field select,
+    .analysis-toolbar select,
+    .toolbar input {
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #111827;
+      box-shadow: none;
+      font-size: 15px;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus,
+    .analysis-toolbar select:focus,
+    .toolbar input:focus {
+      border-color: #0074e9;
+      box-shadow: 0 0 0 3px rgba(0, 116, 233, 0.12);
+      background: #ffffff;
+    }
+
+    .field input::placeholder,
+    .field textarea::placeholder {
+      color: #94a3b8;
+    }
+
+    .check-title,
+    .license-line .value,
+    .analysis-stat-value,
+    .finance-stat-value,
+    .finance-list-item strong,
+    .finance-panel h3,
+    .analysis-box h3,
+    .license-name,
+    .license-key {
+      color: #111827;
+    }
+
+    .check-item:hover {
+      background: #f8fafc;
+      border-color: #b9c7d6;
+      transform: none;
+    }
+
+    .license-pill,
+    .feature-mini-badge,
+    .pill {
+      border-radius: 8px;
+      background: #eef2f7;
+      color: #334155;
+      border: 1px solid #d9e1ea;
+    }
+
+    .license-pill.ok,
+    .feature-mini-badge.on,
+    .pill.ok {
+      background: #e9f9ef;
+      border-color: #b7ebc6;
+      color: #0f7a35;
+    }
+
+    .license-pill.error,
+    .feature-mini-badge.off,
+    .pill.off {
+      background: #fff1f2;
+      border-color: #fecdd3;
+      color: #be123c;
+    }
+
+    .license-pill.warn {
+      background: #fff7ed;
+      border-color: #fed7aa;
+      color: #c2410c;
+    }
+
+    .analysis-row,
+    .finance-list-item,
+    .finance-table-row,
+    .finance-table-row.head {
+      border-radius: 8px;
+      background: #f8fafc;
+      color: #334155;
+    }
+
+    .finance-stat-value.negative {
+      color: #dc2626;
+    }
+
+    .finance-stat-value.positive {
+      color: #16a34a;
+    }
+
+    #log {
+      background: #0f172a;
+      color: #e5e7eb;
+      border-color: #0f172a;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .status-chip {
+      border-radius: 8px;
+      background: #eaf4ff;
+      border: 1px solid #b9dcff;
+      color: #005cb9;
+    }
+
+    @media (max-width: 1100px) {
+      .grid,
+      .analysis-grid,
+      .finance-layout,
+      .finance-grid,
+      .fields,
+      .license-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-left">
+        <div class="brand-row">
+          <div class="brand-badge">
+            <span class="brand-dot"></span>
+            Premium Review Automation Suite
+          </div>
+        </div>
+        <h1>청담봇</h1>
+        <p>리뷰 답글, 블라인드 신청, 네이버 메일 자동화를 위한 통합 운영 프로그램</p>
+      </div>
+
+      <div class="hero-actions">
+        <button class="danger-btn" id="resetCoupangBtn" type="button">쿠팡 리셋</button>
+        <button class="secondary-btn" id="openLogFolderBtn" type="button">로그 폴더 열기</button>
+        <button class="secondary-btn" id="summarizeErrorsBtn" type="button">오류 요약</button>
+        <button class="support-btn" id="supportBtn">문의 오픈카톡 입장</button>
+      </div>
+    </section>
+
+    <nav class="quick-nav" aria-label="주요 메뉴">
+      <a href="#licenseSection">라이센스</a>
+      <a href="#featureSection">실행 기능</a>
+      <a href="#analysisSection">리뷰 분석</a>
+      <a href="#financeSection">재무 분석</a>
+      <a href="#storeClickSection">우가클 분석</a>
+      <a href="#threadsSection">스레드 초안</a>
+      <a href="#logSection">로그</a>
+    </nav>
+
+    <section class="grid">
+      <div class="left-stack">
+        <div class="card license-card" id="licenseSection">
+          <h2 class="card-title">라이센스 관리</h2>
+          <p class="subtitle">License</p>
+
+          <div class="fields" style="margin-bottom: 16px;">
+            <div class="field full">
+              <label for="licenseKey">라이센스 키</label>
+              <div class="field-row">
+                <input id="licenseKey" type="text" placeholder="예: CDM-2026-ABCD-1234" />
+                <button class="pick-btn" id="saveLicenseBtn" type="button">저장</button>
+                <button class="secondary-btn" id="checkLicenseBtn" type="button">확인</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="license-grid">
+            <div class="license-status-panel">
+              <div class="license-kv">
+                <div class="license-line">
+                  <span class="label">현재 상태</span>
+                  <span class="value">
+                    <span class="license-pill warn" id="licenseStatus">미확인</span>
+                  </span>
+                </div>
+                <div class="license-line">
+                  <span class="label">고객명</span>
+                  <span class="value" id="licenseCustomer">-</span>
+                </div>
+                <div class="license-line">
+                  <span class="label">만료일</span>
+                  <span class="value" id="licenseExpire">-</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="feature-mini-list">
+              <div class="feature-mini-title">허용 기능</div>
+
+              <div class="feature-mini-item">
+                <span>배민 답글</span>
+                <span class="feature-mini-badge" id="featureBaeminReply">-</span>
+              </div>
+
+              <div class="feature-mini-item">
+                <span>배민 블라인드</span>
+                <span class="feature-mini-badge" id="featureBaeminBlind">-</span>
+              </div>
+
+              <div class="feature-mini-item">
+                <span>쿠팡 답글</span>
+                <span class="feature-mini-badge" id="featureCoupangReply">-</span>
+              </div>
+
+              <div class="feature-mini-item">
+                <span>쿠팡 블라인드</span>
+                <span class="feature-mini-badge" id="featureCoupangBlind">-</span>
+              </div>
+
+              <div class="feature-mini-item">
+                <span>네이버 메일</span>
+                <span class="feature-mini-badge" id="featureNaverMail">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tip">
+            현재 단계에서는 화면과 저장 기능만 먼저 붙여두고, 다음 단계에서 서버 검증 연결을 추가하면 됩니다.
+          </div>
+        </div>
+
+        <div class="card" id="featureSection">
+          <h2 class="card-title">실행 기능 선택</h2>
+          <p class="subtitle">Functions</p>
+
+          <div class="function-list">
+            <label class="check-item" id="baeminReplyWrap">
+              <input type="checkbox" id="baeminReply">
+              <div class="check-text">
+                <span class="check-title">배민 답글</span>
+                <span class="check-desc">배달의민족 미답변 리뷰 답글 자동 작성</span>
+              </div>
+            </label>
+
+            <label class="check-item" id="baeminBlindWrap">
+              <input type="checkbox" id="baeminBlind">
+              <div class="check-text">
+                <span class="check-title">배민 블라인드</span>
+                <span class="check-desc">배민 저평점 리뷰 블라인드 신청 자동화</span>
+              </div>
+            </label>
+
+            <label class="check-item" id="coupangReplyWrap">
+              <input type="checkbox" id="coupangReply">
+              <div class="check-text">
+                <span class="check-title">쿠팡 답글</span>
+                <span class="check-desc">쿠팡이츠 미답변 리뷰 답글 자동 작성</span>
+              </div>
+            </label>
+
+            <label class="check-item" id="coupangBlindWrap">
+              <input type="checkbox" id="coupangBlind">
+              <div class="check-text">
+                <span class="check-title">쿠팡 블라인드</span>
+                <span class="check-desc">쿠팡이츠 저평점 리뷰 게시중단 신청 자동화</span>
+              </div>
+            </label>
+
+            <label class="check-item" id="naverMailWrap">
+              <input type="checkbox" id="naverMail">
+              <div class="check-text">
+                <span class="check-title">네이버 메일</span>
+                <span class="check-desc">배민 게시중단 안내 메일 및 폼 제출 자동화</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="actions">
+            <button class="secondary-btn" id="saveBtn">설정 저장</button>
+            <button class="secondary-btn" id="prepareBtn">준비</button>
+            <button class="primary-btn" id="startBtn">시작</button>
+            <button class="danger-btn" id="stopBtn">중지</button>
+          </div>
+
+          <div class="tip">
+            준비 버튼을 누르면 브라우저가 열리고, 각 플랫폼 로그인/필터 세팅 후 시작 버튼을 누르면 작업이 진행됩니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">매장 설정 및 GPT 답글 규칙</h2>
+        <p class="subtitle">Store Settings</p>
+
+        <div class="fields">
+          <div class="field full">
+            <label for="serverBaseUrl">서버 주소</label>
+            <div class="field-row">
+              <input id="serverBaseUrl" type="text" placeholder="예: http://43.203.124.132:4300" />
+              <button class="secondary-btn" id="checkServerBtn" type="button">연결 확인</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="storeName">매장명</label>
+            <input id="storeName" type="text" placeholder="예: 청담각 강남본점" />
+          </div>
+
+          <div class="field">
+            <label for="baeminStoreId">배민 스토어 아이디</label>
+            <input id="baeminStoreId" type="text" placeholder="" />
+          </div>
+
+          <div class="field">
+            <label for="coupangStoreId">쿠팡 스토어 아이디</label>
+            <input id="coupangStoreId" type="text" placeholder="" />
+          </div>
+
+          <div class="field">
+            <label for="bizNo">사업자등록번호</label>
+            <input id="bizNo" type="text" placeholder="" />
+          </div>
+
+          <div class="field full">
+            <label for="reviewRule">GPT 리뷰 답글 규칙</label>
+            <textarea id="reviewRule" placeholder="300~400글자 고객님의 말씀에 답변을 중심으로 건강안부 인사 필수 잘못에 대한 무조건 적인 사과 재발방지 약속"></textarea>
+          </div>
+
+          <div class="field" style="display:none;">
+            <label for="baeminReplyMode">배민 답글 GPT 모드</label>
+            <select id="baeminReplyMode">
+              <option value="advanced">고급 버전</option>
+              <option value="basic">일반 버전</option>
+            </select>
+          </div>
+
+          <div class="field" style="display:none;">
+            <label for="coupangReplyMode">쿠팡 답글 GPT 모드</label>
+            <select id="coupangReplyMode">
+              <option value="advanced">고급 버전</option>
+              <option value="basic">일반 버전</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label for="idCardPath">네이버 메일용 신분증 이미지 경로</label>
+            <div class="field-row">
+              <input id="idCardPath" type="text" placeholder="신분증 이미지 파일 경로를 선택하세요" />
+              <button class="pick-btn" id="pickIdCardBtn" type="button">파일 선택</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="card analysis-card" id="analysisSection">
+      <div class="status-bar">
+        <div>
+          <h2 class="card-title" style="margin:0;">플랫폼 별 리뷰 분석</h2>
+          <p class="subtitle" style="margin-top:6px;">월별 · 플랫폼별 리뷰 로그 분석</p>
+        </div>
+        <button class="secondary-btn" id="refreshAnalysisBtn" type="button">새로고침</button>
+      </div>
+
+      <div class="analysis-toolbar">
+        <select id="analysisMonthFilter"></select>
+        <select id="analysisPlatformFilter"></select>
+      </div>
+
+      <div class="analysis-month-list" id="analysisMonthList"></div>
+
+      <div class="analysis-top">
+        <div class="analysis-stat"><div class="analysis-stat-label">전체 리뷰</div><div class="analysis-stat-value" id="analysisTotalReviews">0</div></div>
+        <div class="analysis-stat"><div class="analysis-stat-label">저평점 리뷰</div><div class="analysis-stat-value" id="analysisLowReviews">0</div></div>
+        <div class="analysis-stat"><div class="analysis-stat-label">불만 키워드 감지</div><div class="analysis-stat-value" id="analysisComplaintReviews">0</div></div>
+        <div class="analysis-stat"><div class="analysis-stat-label">분석 로그 파일</div><div class="analysis-stat-value" id="analysisFileCount">0</div></div>
+      </div>
+
+      <div class="analysis-grid">
+        <div class="analysis-box">
+          <h3>별점별</h3>
+          <div class="analysis-list" id="analysisByRating"></div>
+        </div>
+        <div class="analysis-box">
+          <h3>카테고리별</h3>
+          <div class="analysis-list" id="analysisByCategory"></div>
+        </div>
+        <div class="analysis-box">
+          <h3>메뉴별</h3>
+          <div class="analysis-list" id="analysisByMenu"></div>
+        </div>
+        <div class="analysis-box">
+          <h3>저평점 메뉴</h3>
+          <div class="analysis-list" id="analysisLowMenus"></div>
+        </div>
+        <div class="analysis-box">
+          <h3>저평점 카테고리</h3>
+          <div class="analysis-list" id="analysisLowCategories"></div>
+        </div>
+        <div class="analysis-box">
+          <h3>사용 로그 파일</h3>
+          <div class="analysis-list" id="analysisFiles"></div>
+        </div>
+      </div>
+
+      <div class="analysis-review-list" id="analysisLowReviewList"></div>
+    </section>
+
+    <section class="card finance-card" id="financeSection">
+      <div class="status-bar">
+        <div>
+          <h2 class="card-title" style="margin:0;">재무 분석 봇</h2>
+          <p class="subtitle" style="margin-top:6px;">은행 거래 엑셀 또는 CSV를 읽어서 월별 손익, 식자재, 마진율, 예상 세금을 정리합니다.</p>
+        </div>
+        <button class="secondary-btn" id="analyzeFinanceBtn" type="button">재무 분석 실행</button>
+      </div>
+
+      <div class="finance-toolbar">
+        <div class="field" style="flex:1 1 100%;">
+          <label>표준 붙여넣기 양식</label>
+          <div class="finance-assumption">
+            첫 줄은 반드시 <strong>거래일, 사용처, 내용, 금액</strong> 으로 입력하세요. 예: <code>2026-01-03, 배민정산, 1월 정산 입금, 150000</code>
+          </div>
+        </div>
+
+        <div class="field" style="flex:1 1 520px;">
+          <label for="financeDepositText">입금내역 붙여넣기</label>
+          <textarea id="financeDepositText" rows="7" placeholder="거래일,사용처,내용,금액&#10;2026-01-03,배민정산,1월 정산 입금,150000"></textarea>
+        </div>
+
+        <div class="field" style="flex:1 1 520px;">
+          <label for="financeWithdrawalText">출금내역 붙여넣기</label>
+          <textarea id="financeWithdrawalText" rows="7" placeholder="거래일,사용처,내용,금액&#10;2026-01-04,식자재마트,채소 구입,45000"></textarea>
+        </div>
+
+        <div class="field" style="flex:1 1 360px;">
+          <label for="financeDepositFilePath">입금내역 파일</label>
+          <div class="field-row">
+            <input id="financeDepositFilePath" type="text" placeholder="예: 2026-04_입금.xls" />
+            <button class="pick-btn" id="pickFinanceDepositFileBtn" type="button">입금 파일 선택</button>
+          </div>
+        </div>
+
+        <div class="field" style="flex:1 1 360px;">
+          <label for="financeWithdrawalFilePath">출금내역 파일</label>
+          <div class="field-row">
+            <input id="financeWithdrawalFilePath" type="text" placeholder="예: 2026-04_출금.xls" />
+            <button class="pick-btn" id="pickFinanceWithdrawalFileBtn" type="button">출금 파일 선택</button>
+          </div>
+        </div>
+
+        <div class="field" style="display:none;">
+          <label for="financeFilePath">은행 거래 파일</label>
+          
+            <input id="financeFilePath" type="text" placeholder="예: 국민은행_거래내역.xlsx" />
+            <button class="pick-btn" id="pickFinanceFileBtn" type="button">파일 선택</button>
+          </div>
+
+        <div class="field" style="min-width:220px;">
+          <label for="vatMode">과세 유형</label>
+          <select id="vatMode">
+            <option value="general">일반과세자</option>
+            <option value="simplified">간이과세자(음식점 기준 추정)</option>
+          </select>
+        </div>
+        <div class="field" style="min-width:220px;">
+          <label for="settlementStartDay">정산 시작일</label>
+          <input id="settlementStartDay" type="number" min="1" max="28" value="5" />
+        </div>
+      </div>
+
+      <div class="finance-grid">
+        <div class="finance-stat">
+          <div class="finance-stat-label">총 매출 입금</div>
+          <div class="finance-stat-value positive" id="financeSales">0원</div>
+        </div>
+        <div class="finance-stat">
+          <div class="finance-stat-label">확정 영업비용</div>
+          <div class="finance-stat-value" id="financeExpense">0원</div>
+        </div>
+        <div class="finance-stat">
+          <div class="finance-stat-label">영업 순수익</div>
+          <div class="finance-stat-value" id="financeNetProfit">0원</div>
+        </div>
+        <div class="finance-stat">
+          <div class="finance-stat-label">예상 마진율</div>
+          <div class="finance-stat-value" id="financeMarginRate">0%</div>
+        </div>
+      </div>
+
+      <div class="finance-grid">
+        <div class="finance-stat">
+          <div class="finance-stat-label">식자재</div>
+          <div class="finance-stat-value" id="financeRawMaterials">0원</div>
+        </div>
+        <div class="finance-stat">
+          <div class="finance-stat-label">플랫폼/배달수수료</div>
+          <div class="finance-stat-value" id="financeFees">0원</div>
+        </div>
+        <div class="finance-stat">
+          <div class="finance-stat-label">예상 부가세</div>
+          <div class="finance-stat-value" id="financeVat">0원</div>
+        </div>
+        <div class="finance-stat">
+          <div class="finance-stat-label">예상 종합소득세+지방세</div>
+          <div class="finance-stat-value" id="financeIncomeTax">0원</div>
+        </div>
+        <div class="finance-stat">
+          <div class="finance-stat-label">월 세금 세이브 권장액</div>
+          <div class="finance-stat-value" id="financeTaxReserve">0원</div>
+        </div>
+      </div>
+
+      <div class="finance-layout">
+        <div class="finance-panel">
+          <h3>월별 손익</h3>
+          <div class="finance-table" id="financeMonthlyTable"></div>
+        </div>
+
+        <div class="finance-panel">
+          <h3>지출 카테고리</h3>
+          <div class="finance-list" id="financeCategoryList"></div>
+        </div>
+      </div>
+
+      <div class="finance-layout" style="margin-top:16px;">
+        <div class="finance-panel">
+          <h3>확인필요/비영업 출금</h3>
+          <div class="finance-list" id="financeUncategorizedList"></div>
+        </div>
+
+        <div class="finance-panel">
+          <h3>분석 가정</h3>
+          <div class="finance-assumption" id="financeAssumptionText">거래 파일을 분석하면 여기에 계산 가정이 표시됩니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card finance-card" id="storeClickSection">
+      <div class="status-bar">
+        <div>
+          <h2 class="card-title" style="margin:0;">배민 우리가게클릭 분석</h2>
+          <p class="subtitle" style="margin-top:6px;">성과 화면의 날짜, 광고지출, 노출수, 클릭수, 주문수, 주문금액 표를 복사해 붙여넣으면 계산값과 GPT 운영안을 같이 정리합니다.</p>
+        </div>
+        <button class="secondary-btn" id="analyzeStoreClickBtn" type="button">우가클 분석 실행</button>
+      </div>
+
+      <div class="finance-toolbar">
+        <div class="field" style="flex:1 1 100%;">
+          <label for="storeClickText">우리가게클릭 성과 표 붙여넣기</label>
+          <textarea id="storeClickText" rows="8" placeholder="날짜	광고지출	노출수	클릭수	주문수	주문금액	광고효과&#10;4.1	390,650원	8,364회	601회	149건	3,331,700원	8.53배"></textarea>
+        </div>
+      </div>
+
+      <div class="finance-layout" style="margin-top:16px;">
+        <div class="finance-panel">
+          <h3>계산 결과</h3>
+          <div class="finance-list" id="storeClickLocalResult">
+            <div class="finance-empty">성과 표를 붙여넣고 분석을 실행하세요.</div>
+          </div>
+        </div>
+        <div class="finance-panel">
+          <h3>GPT 운영안</h3>
+          <div class="finance-assumption" id="storeClickGptResult">분석을 실행하면 시간대별 ON/OFF와 클릭당 희망 광고금액 조정 방향을 표시합니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card finance-card" id="threadsSection">
+      <div class="status-bar">
+        <div>
+          <h2 class="card-title" style="margin:0;">스레드 자영업 글 초안</h2>
+          <p class="subtitle" style="margin-top:6px;">배민·쿠팡에서 반응 좋은 리뷰·답글을 캡처해 넣으면 개인정보를 모자이크한 이미지와, 초안 방향에 맞는 스레드용 글을 함께 만듭니다. 스레드 앱에는 저장된 이미지와 아래 초안만 붙여넣으면 됩니다. (선택) Threads API로 트렌드 키워드 글도 섞어 참고할 수 있습니다.</p>
+        </div>
+        <button class="secondary-btn" id="analyzeThreadsBtn" type="button">스레드 초안 생성</button>
+      </div>
+
+      <div class="finance-toolbar">
+        <div class="field" style="flex:1 1 100%;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            <input id="threadsUseApiSearch" type="checkbox" checked />
+            <span>Threads API로 키워드 검색 참고 (끄면 리뷰·답글·직접 입력만 사용)</span>
+          </label>
+        </div>
+        <div class="field" style="flex:1 1 100%;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+            <input id="threadsEmergencyStop" type="checkbox" />
+            <span>스레드 긴급중지 (켜면 초안 생성 요청 차단)</span>
+          </label>
+        </div>
+        <div class="field" style="flex:1 1 280px;">
+          <label for="threadsPlan">스레드 플랜(추천)</label>
+          <select id="threadsPlan">
+            <option value="basic">Basic (일 10회 권장)</option>
+            <option value="pro">Pro (일 16회 권장)</option>
+            <option value="enterprise">Enterprise (일 20회 권장)</option>
+          </select>
+        </div>
+        <div class="field" style="flex:1 1 220px;">
+          <label for="threadsDailyLimit">일일 생성 제한 (최대 20)</label>
+          <input id="threadsDailyLimit" type="number" min="1" max="20" step="1" value="10" />
+        </div>
+        <div class="field" style="flex:1 1 100%;">
+          <label for="threadsReviewReplyExamples">리뷰·답글 텍스트 (캡처 내용 요약·붙여넣기)</label>
+          <textarea id="threadsReviewReplyExamples" rows="5" placeholder="캡처 화면에 나온 고객 리뷰와 사장님 답글을 타이핑하거나 요약해 넣으세요. 예시가 여러 개면 빈 줄로 구분합니다. (닉네임·전화번호 등은 적지 않아도 됩니다.)"></textarea>
+        </div>
+        <div class="field" style="flex:1 1 100%;">
+          <label>리뷰·답글 캡처 이미지 (PNG/JPG, 최대 8장)</label>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+            <input id="threadsReviewImageInput" type="file" accept="image/png,image/jpeg,image/webp" multiple style="display:none;" />
+            <button class="secondary-btn" id="pickThreadsReviewImagesBtn" type="button">이미지 선택</button>
+            <span id="threadsReviewImageCount" class="subtitle" style="margin:0;">선택된 파일 없음</span>
+            <button class="secondary-btn" id="openThreadsMosaicFolderBtn" type="button">모자이크 저장 폴더 열기</button>
+          </div>
+        </div>
+        <div class="field" style="flex:1 1 520px;">
+          <label for="threadsKeywords">검색 키워드 (API 사용 시)</label>
+          <textarea id="threadsKeywords" rows="3" placeholder="자영업자이야기, 자영업, 소상공인, 장사, 매출, 배민, 쿠팡이츠"></textarea>
+        </div>
+        <div class="field" style="flex:1 1 520px;">
+          <label for="threadsDraftDirection">초안 방향</label>
+          <textarea id="threadsDraftDirection" rows="3" placeholder="예: 사장님끼리 공감되는 현실적인 글, 댓글을 부르는 질문형, 특정 메뉴 홍보는 약하게"></textarea>
+        </div>
+        <div class="field" style="flex:1 1 360px;">
+          <label for="threadsApiBaseUrl">Threads API 주소</label>
+          <input id="threadsApiBaseUrl" type="text" placeholder="https://graph.threads.net/v1.0" />
+        </div>
+        <div class="field" style="flex:1 1 520px;">
+          <label for="threadsAccessToken">Threads Access Token</label>
+          <input id="threadsAccessToken" type="password" placeholder="Meta 개발자 앱에서 발급한 토큰을 입력하세요" />
+        </div>
+        <div class="field" style="flex:1 1 100%;">
+          <label for="threadsManualPosts">참고 글 직접 붙여넣기 (스레드 등)</label>
+          <textarea id="threadsManualPosts" rows="6" placeholder="반응이 좋아 보이는 스레드 글을 여기에 붙여넣을 수 있습니다. 글과 글 사이는 빈 줄로 구분합니다."></textarea>
+        </div>
+      </div>
+
+      <div class="finance-layout" style="margin-top:16px;">
+        <div class="finance-panel">
+          <h3>참고 후보</h3>
+          <div class="finance-list" id="threadsSourceResult">
+            <div class="finance-empty">리뷰·답글 텍스트, 이미지, 또는 키워드 검색 결과를 넣고 초안을 생성하세요.</div>
+          </div>
+        </div>
+        <div class="finance-panel">
+          <h3>초안 (스레드에 붙여넣기)</h3>
+          <div class="finance-list" id="threadsDraftResult">
+            <div class="finance-empty">초안 생성 후 사람이 직접 확인하고 게시하세요.</div>
+          </div>
+        </div>
+      </div>
+      <div class="finance-panel" style="margin-top:14px;">
+        <h3>모자이크 캡처 (스레드에 사진으로 첨부)</h3>
+        <p class="subtitle" style="margin:0 0 8px;">아래 미리보기는 화면 표시용입니다. 실제 업로드는 저장 폴더의 PNG 파일을 사용하세요. 모자이크는 자동 처리이며, 민감 정보는 반드시 직접 한 번 더 확인하세요.</p>
+        <div class="finance-list" id="threadsMosaicResult">
+          <div class="finance-empty">이미지를 선택한 뒤 초안을 생성하면 여기에 미리보기가 나타납니다.</div>
+        </div>
+      </div>
+      <div class="finance-assumption" id="threadsErrorResult" style="margin-top:14px;">
+        공식 API 권한이 없거나 검색을 끈 경우에도 리뷰·답글 자료로 초안을 생성합니다. 원문 문장과 고유 사례는 복사하지 않습니다.
+      </div>
+    </section>
+
+    <section class="card log-card" id="logSection">
+      <div class="status-bar">
+        <h2 class="card-title" style="margin:0;">실행 로그</h2>
+        <div class="status-chip" id="statusChip">대기중</div>
+      </div>
+      <div id="log"></div>
+    </section>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    function escapeHtml(value = '') {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    const logEl = $('log');
+    const statusChip = $('statusChip');
+    let reviewAnalysisState = { months: [], platforms: [], overview: null, byMonth: {} };
+    let financeAnalysisState = null;
+    let threadsReviewImagePaths = [];
+
+    const defaultLicenseFeatures = {
+      baeminReply: null,
+      baeminReplyBasic: null,
+      baeminReplyPremium: null,
+      baeminBlind: null,
+      coupangReply: null,
+      coupangReplyBasic: null,
+      coupangReplyPremium: null,
+      coupangBlind: null,
+      naverMail: null,
+      financeAnalysis: null,
+      threadsMarketing: null,
+    };
+    let currentLicenseFeatures = { ...defaultLicenseFeatures };
+
+    function resolveReplyModeFromFeatures(features = {}, platform = 'baemin') {
+      const basicKey = platform === 'coupang' ? 'coupangReplyBasic' : 'baeminReplyBasic';
+      const premiumKey = platform === 'coupang' ? 'coupangReplyPremium' : 'baeminReplyPremium';
+      const legacyKey = platform === 'coupang' ? 'coupangReply' : 'baeminReply';
+      const hasExplicitTier =
+        Object.prototype.hasOwnProperty.call(features || {}, basicKey) ||
+        Object.prototype.hasOwnProperty.call(features || {}, premiumKey);
+      if (features[premiumKey] === true) return 'advanced';
+      if (features[basicKey] === true) return 'basic';
+      if (!hasExplicitTier && features[legacyKey] === true) return 'advanced';
+      return 'advanced';
+    }
+
+    function applyLicensedReplyModes() {
+      $('baeminReplyMode').value = resolveReplyModeFromFeatures(currentLicenseFeatures, 'baemin');
+      $('coupangReplyMode').value = resolveReplyModeFromFeatures(currentLicenseFeatures, 'coupang');
+    }
+
+    function appendLog(msg) {
+      logEl.textContent += msg + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function formatCurrency(value) {
+      const amount = Number(value || 0);
+      return `${amount.toLocaleString('ko-KR')}원`;
+    }
+
+    function formatPercent(value) {
+      const num = Number(value || 0);
+      return `${num.toFixed(1)}%`;
+    }
+
+    function setStatus(text) {
+      statusChip.textContent = text;
+    }
+
+    function getSelected() {
+      return {
+        baeminReply: $('baeminReply').checked,
+        baeminBlind: $('baeminBlind').checked,
+        coupangReply: $('coupangReply').checked,
+        coupangBlind: $('coupangBlind').checked,
+        naverMail: $('naverMail').checked,
+      };
+    }
+
+    const featureInputIds = ['baeminReply', 'baeminBlind', 'coupangReply', 'coupangBlind', 'naverMail'];
+
+    function enforceSingleFeatureSelection(changedId = '') {
+      if (!changedId || !$(changedId)?.checked) return;
+      featureInputIds.forEach((id) => {
+        if (id !== changedId) $(id).checked = false;
+      });
+    }
+
+    function parseFinanceFilePaths(value = '') {
+      return String(value || '')
+        .split(/\s*\|\|\s*|\r?\n|;/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function formatFinanceFilePaths(paths = []) {
+      return (paths || []).filter(Boolean).join(' || ');
+    }
+
+    function getSettings() {
+      const financeFilePaths = parseFinanceFilePaths($('financeFilePath').value);
+      const financeDepositFilePaths = parseFinanceFilePaths($('financeDepositFilePath').value);
+      const financeWithdrawalFilePaths = parseFinanceFilePaths($('financeWithdrawalFilePath').value);
+      return {
+        serverBaseUrl: $('serverBaseUrl').value.trim(),
+        storeName: $('storeName').value.trim(),
+        reviewRule: $('reviewRule').value.trim(),
+        baeminStoreId: $('baeminStoreId').value.trim(),
+        coupangStoreId: $('coupangStoreId').value.trim(),
+        bizNo: $('bizNo').value.trim(),
+        idCardPath: $('idCardPath').value.trim(),
+        financeFilePath: financeFilePaths[0] || '',
+        financeFilePaths,
+        financeDepositFilePaths,
+        financeWithdrawalFilePaths,
+        vatMode: $('vatMode').value,
+        settlementStartDay: Number($('settlementStartDay')?.value || 5),
+        threadsAccessToken: $('threadsAccessToken')?.value?.trim() || '',
+        threadsApiBaseUrl: $('threadsApiBaseUrl')?.value?.trim() || 'https://graph.threads.net/v1.0',
+        threadsKeywords: $('threadsKeywords')?.value?.trim() || '',
+        threadsDraftDirection: $('threadsDraftDirection')?.value?.trim() || '',
+        threadsUseThreadsApiSearch: $('threadsUseApiSearch') ? $('threadsUseApiSearch').checked : true,
+        threadsReviewReplyExamples: $('threadsReviewReplyExamples')?.value?.trim() || '',
+        threadsEmergencyStop: $('threadsEmergencyStop') ? $('threadsEmergencyStop').checked : false,
+        threadsPlan: $('threadsPlan')?.value || 'basic',
+        threadsDailyLimit: Number($('threadsDailyLimit')?.value || 10),
+        baeminReplyMode: resolveReplyModeFromFeatures(currentLicenseFeatures, 'baemin'),
+        coupangReplyMode: resolveReplyModeFromFeatures(currentLicenseFeatures, 'coupang'),
+        supportUrl: 'https://open.kakao.com/o/gjDTy5ni',
+      };
+    }
+
+    function getLicenseData() {
+      return {
+        licenseKey: $('licenseKey').value.trim(),
+        serverBaseUrl: $('serverBaseUrl').value.trim(),
+      };
+    }
+
+    function applySettings(settings = {}) {
+      $('serverBaseUrl').value = settings.serverBaseUrl || 'http://43.203.124.132:4300';
+      $('storeName').value = settings.storeName || '';
+      $('reviewRule').value = settings.reviewRule || '';
+      $('baeminStoreId').value = settings.baeminStoreId || '';
+      $('coupangStoreId').value = settings.coupangStoreId || '';
+      $('bizNo').value = settings.bizNo || '';
+      $('idCardPath').value = settings.idCardPath || '';
+      const financeFilePaths = Array.isArray(settings.financeFilePaths) && settings.financeFilePaths.length
+        ? settings.financeFilePaths
+        : (settings.financeFilePath ? [settings.financeFilePath] : []);
+      $('financeFilePath').value = formatFinanceFilePaths(financeFilePaths);
+      $('financeDepositFilePath').value = formatFinanceFilePaths(settings.financeDepositFilePaths || []);
+      $('financeWithdrawalFilePath').value = formatFinanceFilePaths(settings.financeWithdrawalFilePaths || []);
+      $('vatMode').value = settings.vatMode || 'general';
+      if ($('settlementStartDay')) $('settlementStartDay').value = settings.settlementStartDay || 5;
+      if ($('threadsAccessToken')) $('threadsAccessToken').value = settings.threadsAccessToken || '';
+      if ($('threadsApiBaseUrl')) $('threadsApiBaseUrl').value = settings.threadsApiBaseUrl || 'https://graph.threads.net/v1.0';
+      if ($('threadsKeywords')) $('threadsKeywords').value = settings.threadsKeywords || '자영업자이야기, 자영업, 소상공인, 장사, 매출, 배민, 쿠팡이츠';
+      if ($('threadsDraftDirection')) $('threadsDraftDirection').value = settings.threadsDraftDirection || '';
+      if ($('threadsUseApiSearch')) $('threadsUseApiSearch').checked = settings.threadsUseThreadsApiSearch !== false;
+      if ($('threadsReviewReplyExamples')) $('threadsReviewReplyExamples').value = settings.threadsReviewReplyExamples || '';
+      if ($('threadsEmergencyStop')) $('threadsEmergencyStop').checked = settings.threadsEmergencyStop === true;
+      if ($('threadsPlan')) $('threadsPlan').value = settings.threadsPlan || 'basic';
+      if ($('threadsDailyLimit')) $('threadsDailyLimit').value = String(Math.max(1, Math.min(20, Number(settings.threadsDailyLimit || 10))));
+      $('baeminReplyMode').value = settings.baeminReplyMode || 'advanced';
+      $('coupangReplyMode').value = settings.coupangReplyMode || 'advanced';
+      applyLicensedReplyModes();
+    }
+
+    function applySavedLicense(license = {}) {
+      $('licenseKey').value = license.licenseKey || '';
+      if (license.customerName) $('licenseCustomer').textContent = license.customerName;
+      if (license.expiresAt) $('licenseExpire').textContent = formatDateTime(license.expiresAt);
+      if (license.statusText) setLicenseStatus(license.statusText, license.statusType || 'warn');
+      if (license.features) applyLicenseFeatures(license.features);
+    }
+
+    function setLicenseStatus(text, type = 'warn') {
+      const el = $('licenseStatus');
+      el.textContent = text;
+      el.className = 'license-pill';
+      if (type) el.classList.add(type);
+    }
+
+    function setFeatureBadge(id, value) {
+      const el = $(id);
+      el.className = 'feature-mini-badge';
+
+      if (value === true) {
+        el.textContent = 'ON';
+        el.classList.add('on');
+      } else if (value === false) {
+        el.textContent = 'OFF';
+        el.classList.add('off');
+      } else {
+        el.textContent = '-';
+      }
+    }
+
+    function setFeatureLock(featureKey, enabled) {
+      const map = {
+        baeminReply: ['baeminReply', 'baeminReplyWrap'],
+        baeminBlind: ['baeminBlind', 'baeminBlindWrap'],
+        coupangReply: ['coupangReply', 'coupangReplyWrap'],
+        coupangBlind: ['coupangBlind', 'coupangBlindWrap'],
+        naverMail: ['naverMail', 'naverMailWrap'],
+      };
+
+      const [inputId, wrapId] = map[featureKey] || [];
+      if (!inputId || !wrapId) return;
+
+      const input = $(inputId);
+      const wrap = $(wrapId);
+
+      if (enabled === false) {
+        input.checked = false;
+        input.disabled = true;
+        wrap.classList.add('locked');
+      } else {
+        input.disabled = false;
+        wrap.classList.remove('locked');
+      }
+
+      if (input.checked) {
+        enforceSingleFeatureSelection(inputId);
+      }
+    }
+
+    function applyLicenseFeatures(features = defaultLicenseFeatures) {
+      const merged = { ...defaultLicenseFeatures, ...features };
+      currentLicenseFeatures = merged;
+      applyLicensedReplyModes();
+
+      setFeatureBadge('featureBaeminReply', merged.baeminReply);
+      setFeatureBadge('featureBaeminBlind', merged.baeminBlind);
+      setFeatureBadge('featureCoupangReply', merged.coupangReply);
+      setFeatureBadge('featureCoupangBlind', merged.coupangBlind);
+      setFeatureBadge('featureNaverMail', merged.naverMail);
+
+      setFeatureLock('baeminReply', merged.baeminReply);
+      setFeatureLock('baeminBlind', merged.baeminBlind);
+      setFeatureLock('coupangReply', merged.coupangReply);
+      setFeatureLock('coupangBlind', merged.coupangBlind);
+      setFeatureLock('naverMail', merged.naverMail);
+
+      const threadsGptOk = merged.threadsMarketing === true || merged.financeAnalysis === true;
+      const threadsCard = $('threadsSection');
+      if (threadsCard) {
+        threadsCard.style.opacity = threadsGptOk ? '1' : '0.5';
+        threadsCard.title = threadsGptOk ? '' : '라이센스에 스레드 GPT 초안 권한이 없습니다. 재무 분석 권한이 있으면 함께 사용할 수 있습니다.';
+      }
+      const threadsBtn = $('analyzeThreadsBtn');
+      if (threadsBtn) {
+        threadsBtn.disabled = !threadsGptOk;
+      }
+    }
+
+
+    function renderCountList(targetId, data, emptyText = '데이터 없음', limit = 6) {
+      const el = $(targetId);
+      const entries = Object.entries(data || {}).slice(0, limit);
+      if (!entries.length) {
+        el.innerHTML = `<div class="analysis-empty">${emptyText}</div>`;
+        return;
+      }
+      el.innerHTML = entries
+        .map(([key, value]) => `<div class="analysis-row"><span>${key}</span><strong>${value}건</strong></div>`)
+        .join('');
+    }
+
+    function renderTextList(targetId, items, emptyText = '데이터 없음') {
+      const el = $(targetId);
+      if (!items || !items.length) {
+        el.innerHTML = `<div class="analysis-empty">${emptyText}</div>`;
+        return;
+      }
+      el.innerHTML = items
+        .map((item) => `<div class="analysis-row"><span>${item}</span></div>`)
+        .join('');
+    }
+
+    function renderMonthList(months = []) {
+      const el = $('analysisMonthList');
+      if (!months.length) {
+        el.innerHTML = '<div class="analysis-empty">월별 로그가 없습니다.</div>';
+        return;
+      }
+
+      el.innerHTML = months.map((item) => `
+        <div class="analysis-month-card">
+          <strong>${item.label}</strong>
+          <span>전체 리뷰 ${item.totalReviews || 0}건</span>
+          <span>저평점 리뷰 ${item.lowRatingReviews || 0}건</span>
+        </div>
+      `).join('');
+    }
+
+    function fillSelectOptions(targetId, items, defaultLabel) {
+      const el = $(targetId);
+      el.innerHTML = [
+        `<option value="all">${defaultLabel}</option>`,
+        ...items.map((item) => `<option value="${item.key}">${item.label}</option>`),
+      ].join('');
+    }
+
+    function getSelectedAnalysisBucket() {
+      const monthKey = $('analysisMonthFilter').value || 'all';
+      const platformKey = $('analysisPlatformFilter').value || 'all';
+
+      if (monthKey === 'all') {
+        return reviewAnalysisState.overview || null;
+      }
+
+      const monthData = reviewAnalysisState.byMonth?.[monthKey];
+      if (!monthData) return null;
+
+      if (platformKey === 'all') {
+        return monthData.overview || null;
+      }
+
+      return monthData.platforms?.[platformKey] || null;
+    }
+
+    function renderAnalysisBucket(data) {
+      const bucket = data || {
+        summary: {},
+        byRating: {},
+        byCategory: {},
+        byMenu: {},
+        lowRatingMenus: {},
+        lowRatingCategories: {},
+        recentLowRatingReviews: [],
+      };
+
+      $('analysisTotalReviews').textContent = bucket.summary?.totalReviews || 0;
+      $('analysisLowReviews').textContent = bucket.summary?.lowRatingReviews || 0;
+      $('analysisComplaintReviews').textContent = bucket.summary?.complaintReviews || 0;
+      $('analysisFileCount').textContent = (bucket.summary?.files || []).length;
+
+      renderCountList('analysisByRating', bucket.byRating, '평점 데이터 없음');
+      renderCountList('analysisByCategory', bucket.byCategory, '카테고리 데이터 없음');
+      renderCountList('analysisByMenu', bucket.byMenu, '메뉴 데이터 없음');
+      renderCountList('analysisLowMenus', bucket.lowRatingMenus, '저평점 메뉴 없음');
+      renderCountList('analysisLowCategories', bucket.lowRatingCategories, '저평점 카테고리 없음');
+      renderTextList('analysisFiles', bucket.summary?.files || [], '로그 파일 없음');
+      renderLowReviewList(bucket.recentLowRatingReviews || []);
+    }
+
+    function onAnalysisFilterChange() {
+      renderAnalysisBucket(getSelectedAnalysisBucket());
+    }
+
+    function renderLowReviewList(items = []) {
+      const el = $('analysisLowReviewList');
+      if (!items.length) {
+        el.innerHTML = '<div class="analysis-empty">최근 저평점 리뷰가 없습니다.</div>';
+        return;
+      }
+      el.innerHTML = items
+        .map((item) => `
+          <div class="analysis-review-item">
+            <div class="analysis-review-head">
+              <span>${item.rating}점</span>
+              <span>${item.date || '(날짜 없음)'}</span>
+              <span>리뷰번호 ${item.reviewId}</span>
+              <span>메뉴 ${item.orderMenu || '(없음)'}</span>
+              <span>카테고리 ${(item.categories || []).join(', ')}</span>
+            </div>
+            <div class="analysis-review-body">${item.body || '(없음)'}</div>
+          </div>
+        `)
+        .join('');
+    }
+
+    async function refreshReviewAnalysis(showLog = false) {
+      if (typeof window.api.getReviewAnalysis !== 'function') return;
+      const res = await window.api.getReviewAnalysis();
+      if (!res?.ok) {
+        if (showLog) appendLog('리뷰 분석 불러오기 실패: ' + (res?.error || '알 수 없음'));
+        return;
+      }
+      reviewAnalysisState = res.data || { months: [], platforms: [], overview: null, byMonth: {} };
+      renderMonthList(reviewAnalysisState.months || []);
+      fillSelectOptions('analysisMonthFilter', reviewAnalysisState.months || [], '전체 월');
+      fillSelectOptions(
+        'analysisPlatformFilter',
+        (reviewAnalysisState.platforms || []).filter((item) => item.key !== 'all'),
+        '전체 플랫폼'
+      );
+      onAnalysisFilterChange();
+
+      if (showLog) appendLog('리뷰 분석 새로고침 완료');
+    }
+
+    function renderFinanceCategoryList(items = {}) {
+      const el = $('financeCategoryList');
+      const entries = Object.entries(items || {}).slice(0, 12);
+
+      if (!entries.length) {
+        el.innerHTML = '<div class="finance-empty">아직 분류된 거래가 없습니다.</div>';
+        return;
+      }
+
+      el.innerHTML = entries
+        .map(([key, value]) => `<div class="finance-list-item"><span>${key}</span><strong>${formatCurrency(value)}</strong></div>`)
+        .join('');
+    }
+
+    function renderFinanceMonthlyTable(monthly = {}, months = []) {
+      const el = $('financeMonthlyTable');
+      if (!months.length) {
+        el.innerHTML = '<div class="finance-empty">월별 재무 데이터가 없습니다.</div>';
+        return;
+      }
+
+      const rows = months.map((monthKey) => {
+        const item = monthly[monthKey] || {};
+        const taxTotal = Number(item.estimatedIncomeTax || 0) + Number(item.estimatedLocalIncomeTax || 0);
+        const monthlyTaxReserve = Number(item.monthlyTaxReserve || 0);
+        const marginRate = Number(item.marginRate || 0);
+        return `
+          <div class="finance-table-row">
+            <strong>${monthKey}</strong>
+            <span>${formatCurrency(item.sales)}</span>
+            <span>${formatCurrency(item.expense)}</span>
+            <span>${formatCurrency(item.netProfit)}</span>
+            <span>${formatPercent(marginRate)}</span>
+            <span>${formatCurrency(item.estimatedVat)}</span>
+            <span>${formatCurrency(taxTotal)}</span>
+            <span>${formatCurrency(monthlyTaxReserve)}</span>
+          </div>
+        `;
+      }).join('');
+
+      el.innerHTML = `
+        <div class="finance-table-row head">
+          <span>월</span>
+          <span>매출</span>
+          <span>확정비용</span>
+          <span>영업순익</span>
+          <span>마진율</span>
+          <span>예상 부가세</span>
+          <span>예상 소득세+지방세</span>
+          <span>월 세금 세이브</span>
+        </div>
+        ${rows}
+      `;
+    }
+
+    function renderFinanceUncategorized(items = []) {
+      const el = $('financeUncategorizedList');
+
+      if (!items.length) {
+        el.innerHTML = '<div class="finance-empty">확인필요 또는 비영업 출금이 없습니다.</div>';
+        return;
+      }
+
+      el.innerHTML = items
+        .map((item) => `
+          <div class="finance-list-item">
+            <span>${formatDateTime(item.date)} / ${item.description}</span>
+            <strong>${formatCurrency(item.amount)}</strong>
+          </div>
+        `)
+        .join('');
+    }
+
+    function renderFinanceAnalysis(data = null) {
+      financeAnalysisState = data;
+      const overview = data?.overview || {};
+      const sales = Number(overview.sales || 0);
+      const expense = Number(overview.expense || 0);
+      const netProfit = Number(overview.netProfit || 0);
+      const marginRate = sales > 0 ? (netProfit / sales) * 100 : 0;
+      const incomeTaxTotal = Number(overview.estimatedIncomeTax || 0) + Number(overview.estimatedLocalIncomeTax || 0);
+      const monthlyTaxReserve = Number(overview.monthlyTaxReserve || 0);
+
+      $('financeSales').textContent = formatCurrency(sales);
+      $('financeExpense').textContent = formatCurrency(expense);
+      $('financeNetProfit').textContent = formatCurrency(netProfit);
+      $('financeMarginRate').textContent = formatPercent(marginRate);
+      $('financeRawMaterials').textContent = formatCurrency(overview.rawMaterials || 0);
+      $('financeFees').textContent = formatCurrency(overview.fees || 0);
+      $('financeVat').textContent = formatCurrency(overview.estimatedVat || 0);
+      $('financeIncomeTax').textContent = formatCurrency(incomeTaxTotal);
+      $('financeTaxReserve').textContent = formatCurrency(monthlyTaxReserve);
+
+      $('financeNetProfit').className = `finance-stat-value ${netProfit >= 0 ? 'positive' : 'negative'}`;
+      renderFinanceMonthlyTable(data?.monthly || {}, data?.months || []);
+      renderFinanceCategoryList(overview.byCategory || {});
+      renderFinanceUncategorized(data?.uncategorized || []);
+      $('financeAssumptionText').textContent = data?.assumptions?.note
+        ? `${data.assumptions.note} 연환산 추정 순수익: ${formatCurrency(data.assumptions.annualizedProfit || 0)} / 과세 유형: ${data.assumptions.vatMode}`
+        : '거래 파일을 분석하면 여기에 계산 가정이 표시됩니다.';
+    }
+
+    async function pickFinanceFile() {
+      if (typeof window.api.pickFinanceFile !== 'function') return;
+      const res = await window.api.pickFinanceFile();
+      if (!res?.ok) return;
+      const pickedPaths = Array.isArray(res.paths) && res.paths.length ? res.paths : (res.path ? [res.path] : []);
+      $('financeFilePath').value = formatFinanceFilePaths(pickedPaths);
+    }
+
+    async function pickFinanceDepositFiles() {
+      if (typeof window.api.pickFinanceDepositFiles !== 'function') return;
+      const res = await window.api.pickFinanceDepositFiles();
+      if (!res?.ok) return;
+      const pickedPaths = Array.isArray(res.paths) && res.paths.length ? res.paths : (res.path ? [res.path] : []);
+      $('financeDepositFilePath').value = formatFinanceFilePaths(pickedPaths);
+    }
+
+    async function pickFinanceWithdrawalFiles() {
+      if (typeof window.api.pickFinanceWithdrawalFiles !== 'function') return;
+      const res = await window.api.pickFinanceWithdrawalFiles();
+      if (!res?.ok) return;
+      const pickedPaths = Array.isArray(res.paths) && res.paths.length ? res.paths : (res.path ? [res.path] : []);
+      $('financeWithdrawalFilePath').value = formatFinanceFilePaths(pickedPaths);
+    }
+
+    async function runFinanceAnalysis() {
+      const depositFilePaths = parseFinanceFilePaths($('financeDepositFilePath').value);
+      const withdrawalFilePaths = parseFinanceFilePaths($('financeWithdrawalFilePath').value);
+      const filePaths = parseFinanceFilePaths($('financeFilePath').value);
+      const depositText = $('financeDepositText').value.trim();
+      const withdrawalText = $('financeWithdrawalText').value.trim();
+      if (!depositFilePaths.length && !withdrawalFilePaths.length && !filePaths.length && !depositText && !withdrawalText) {
+        appendLog('재무 분석용 거래 파일을 선택해주세요.');
+        return;
+      }
+
+      const saveRes = await window.api.saveSettings(getSettings());
+      if (!saveRes?.ok) {
+        appendLog('재무 설정 저장 실패: ' + (saveRes?.error || '알 수 없음'));
+        return;
+      }
+
+      const res = await window.api.analyzeFinanceFile({
+        filePath: filePaths[0],
+        filePaths,
+        depositFilePaths,
+        withdrawalFilePaths,
+        depositText,
+        withdrawalText,
+        vatMode: $('vatMode').value,
+        settlementStartDay: Number($('settlementStartDay')?.value || 5),
+      });
+
+      if (!res?.ok) {
+        appendLog('재무 분석 실패: ' + (res?.error || '알 수 없음'));
+        return;
+      }
+
+      renderFinanceAnalysis(res.data || null);
+      appendLog('재무 분석 완료');
+    }
+
+    function renderStoreClickAnalysis(data = null) {
+      const localEl = $('storeClickLocalResult');
+      const gptEl = $('storeClickGptResult');
+      if (!localEl || !gptEl) return;
+
+      if (!data) {
+        localEl.innerHTML = '<div class="finance-empty">성과 표를 붙여넣고 분석을 실행하세요.</div>';
+        gptEl.textContent = '분석을 실행하면 시간대별 ON/OFF와 클릭당 희망 광고금액 조정 방향을 표시합니다.';
+        return;
+      }
+
+      const totals = data.totals || {};
+      const metrics = data.metrics || {};
+      const rows = [
+        ['광고지출', formatCurrency(totals.adSpend || 0)],
+        ['노출수', `${Number(totals.impressions || 0).toLocaleString('ko-KR')}회`],
+        ['클릭수', `${Number(totals.clicks || 0).toLocaleString('ko-KR')}회`],
+        ['주문수', `${Number(totals.orders || 0).toLocaleString('ko-KR')}건`],
+        ['주문금액', formatCurrency(totals.orderAmount || 0)],
+        ['CTR', `${Number(metrics.ctr || 0).toFixed(2)}%`],
+        ['CVR', `${Number(metrics.cvr || 0).toFixed(2)}%`],
+        ['평균 CPC', formatCurrency(metrics.cpc || 0)],
+        ['주문당 광고비', formatCurrency(metrics.cpa || 0)],
+        ['광고효과', `${Number(metrics.roas || 0).toFixed(2)}배`],
+      ];
+      localEl.innerHTML = rows
+        .map(([key, value]) => `<div class="finance-list-item"><span>${key}</span><strong>${value}</strong></div>`)
+        .join('');
+
+      const localText = [
+        ...(Array.isArray(data.summary) ? data.summary : []),
+        ...(Array.isArray(data.recommendations) ? data.recommendations : []),
+      ].join('\n');
+      gptEl.textContent = data.gptAnalysis || localText || '분석 결과가 없습니다.';
+    }
+
+    async function runStoreClickAnalysis() {
+      const tableText = $('storeClickText')?.value?.trim() || '';
+      if (!tableText) {
+        appendLog('우리가게클릭 성과 표를 붙여넣어 주세요.');
+        return;
+      }
+      appendLog('우리가게클릭 성과 분석 요청중...');
+      const res = await window.api.analyzeStoreClick({ tableText });
+      if (!res?.ok) {
+        appendLog('우리가게클릭 분석 실패: ' + (res?.error || '알 수 없는 오류'));
+        return;
+      }
+      renderStoreClickAnalysis(res.data || null);
+      appendLog('우리가게클릭 성과 분석 완료');
+    }
+
+    function renderThreadsMarketing(data = null) {
+      const sourceEl = $('threadsSourceResult');
+      const draftEl = $('threadsDraftResult');
+      const errorEl = $('threadsErrorResult');
+      const mosaicEl = $('threadsMosaicResult');
+      if (!sourceEl || !draftEl || !errorEl) return;
+
+      const posts = Array.isArray(data?.posts) ? data.posts : [];
+      const drafts = Array.isArray(data?.drafts) ? data.drafts : [];
+      const errors = Array.isArray(data?.errors) ? data.errors : [];
+      const mosaics = Array.isArray(data?.mosaicOutputs) ? data.mosaicOutputs : [];
+      const mosaicErrors = Array.isArray(data?.mosaicErrors) ? data.mosaicErrors : [];
+
+      sourceEl.innerHTML = posts.length
+        ? posts.slice(0, 8).map((post, index) => {
+          const src = escapeHtml(String(post.source || '').slice(0, 24));
+          return `
+          <div class="finance-list-item" style="align-items:flex-start;">
+            <span>${index + 1}. <em style="opacity:0.75;">[${src}]</em> ${escapeHtml(String(post.text || '').slice(0, 180))}</span>
+            <strong>${Math.round(Number(post.score || 0)).toLocaleString('ko-KR')}점</strong>
+          </div>
+        `;
+        }).join('')
+        : '<div class="finance-empty">API 결과나 직접 붙여넣은 참고 글이 없습니다.</div>';
+
+      draftEl.innerHTML = drafts.length
+        ? drafts.map((draft, index) => `
+          <div class="finance-list-item" style="align-items:flex-start;">
+            <span>${index + 1}. ${escapeHtml(draft)}</span>
+          </div>
+        `).join('')
+        : '<div class="finance-empty">초안이 생성되지 않았습니다.</div>';
+
+      if (mosaicEl) {
+        mosaicEl.innerHTML = mosaics.length
+          ? mosaics.map((m, index) => `
+            <div class="finance-list-item" style="align-items:flex-start;flex-direction:column;gap:8px;">
+              <div style="font-size:12px;opacity:0.85;">${index + 1}. ${escapeHtml(m.fileName || '')}</div>
+              ${m.previewDataUrl ? `<img alt="" src="${m.previewDataUrl}" style="max-width:100%;border-radius:8px;border:1px solid rgba(0,0,0,0.08);" />` : ''}
+              <div style="font-size:11px;word-break:break-all;">${escapeHtml(String(m.outputPath || ''))}</div>
+            </div>
+          `).join('')
+          : '<div class="finance-empty">선택한 캡처가 없거나 아직 생성하지 않았습니다.</div>';
+      }
+
+      errorEl.textContent = [
+        `검색 기준: 최근 7일 / 키워드 ${(data?.keywords || []).join(', ') || '-'}`,
+        `API 검색: ${data?.useThreadsApiSearch === false ? '끔' : '켬'} / API 후보 ${Number(data?.usedApiCount || 0)}개, 스레드 직접입력 ${Number(data?.usedManualCount || 0)}개, 리뷰·답글 텍스트 ${Number(data?.usedReviewReplyCount || 0)}개`,
+        Number(data?.safetyBlockedCount || 0) > 0 ? `보안 필터로 제외된 초안: ${Number(data?.safetyBlockedCount || 0)}개` : '',
+        errors.length ? `참고·API 메시지: ${errors.slice(0, 5).join(' | ')}` : '추가 참고 메시지 없음',
+        mosaicErrors.length ? `이미지 처리: ${mosaicErrors.slice(0, 4).join(' | ')}` : '',
+      ].filter(Boolean).join('\n');
+    }
+
+    async function runThreadsMarketing() {
+      if (typeof window.api.analyzeThreadsMarketing !== 'function') {
+        appendLog('스레드 초안 생성 API가 연결되지 않았습니다.');
+        return;
+      }
+
+      if (currentLicenseFeatures.threadsMarketing !== true && currentLicenseFeatures.financeAnalysis !== true) {
+        appendLog('라이센스에 스레드 GPT 초안 권한이 없습니다. 서버에서 라이센스를 다시 확인해주세요.');
+        return;
+      }
+
+      appendLog('스레드 자영업 글 초안 생성 요청중...');
+      const saveRes = await window.api.saveSettings(getSettings());
+      if (!saveRes?.ok) {
+        appendLog('스레드 설정 저장 실패: ' + (saveRes?.error || '알 수 없음'));
+        return;
+      }
+
+      const res = await window.api.analyzeThreadsMarketing({
+        storeName: $('storeName')?.value?.trim() || '',
+        keywords: $('threadsKeywords')?.value?.trim() || '',
+        accessToken: $('threadsAccessToken')?.value?.trim() || '',
+        apiBaseUrl: $('threadsApiBaseUrl')?.value?.trim() || '',
+        manualPosts: $('threadsManualPosts')?.value?.trim() || '',
+        reviewReplyExamples: $('threadsReviewReplyExamples')?.value?.trim() || '',
+        useThreadsApiSearch: $('threadsUseApiSearch') ? $('threadsUseApiSearch').checked : true,
+        threadsEmergencyStop: $('threadsEmergencyStop') ? $('threadsEmergencyStop').checked : false,
+        threadsPlan: $('threadsPlan')?.value || 'basic',
+        threadsDailyLimit: Number($('threadsDailyLimit')?.value || 10),
+        threadsReviewImagePaths,
+        direction: $('threadsDraftDirection')?.value?.trim() || '',
+      });
+
+      if (!res?.ok) {
+        appendLog('스레드 초안 생성 실패: ' + (res?.error || '알 수 없음'));
+        return;
+      }
+
+      renderThreadsMarketing(res.data || null);
+      appendLog('스레드 자영업 글 초안 생성 완료');
+    }
+
+    function formatDateTime(value) {
+      if (!value) return '-';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      return date.toLocaleString('ko-KR');
+    }
+
+    async function saveSettingsOnly() {
+      const res = await window.api.saveSettings(getSettings());
+      if (!res.ok) {
+        appendLog('에러: ' + res.error);
+        return;
+      }
+      appendLog('설정 저장 완료');
+    }
+
+    async function checkServerConnection() {
+      if (typeof window.api.checkServerConnection !== 'function') {
+        appendLog('서버 연결 확인 API가 없습니다.');
+        return;
+      }
+
+      const serverBaseUrl = $('serverBaseUrl').value.trim();
+      const res = await window.api.checkServerConnection({ serverBaseUrl });
+
+      if (!res?.ok) {
+        appendLog('서버 연결 실패: ' + (res?.error || '알 수 없음'));
+        setStatus('서버 연결 실패');
+        return;
+      }
+
+      $('serverBaseUrl').value = res.serverBaseUrl || serverBaseUrl;
+      appendLog('서버 연결 정상: ' + (res.serverBaseUrl || serverBaseUrl));
+      setStatus('서버 연결 정상');
+    }
+
+    async function saveLicenseOnly() {
+      const data = getLicenseData();
+
+      if (!data.licenseKey) {
+        appendLog('에러: 라이센스 키를 입력해주세요.');
+        setLicenseStatus('키 없음', 'error');
+        return;
+      }
+
+      if (typeof window.api.saveLicense !== 'function') {
+        appendLog('라이센스 저장 API가 아직 연결되지 않았습니다. preload/main 단계에서 추가 예정입니다.');
+        setLicenseStatus('저장 대기', 'warn');
+        return;
+      }
+
+      const res = await window.api.saveLicense(data);
+
+      if (!res?.ok) {
+        appendLog('에러: ' + (res?.error || '라이센스 저장 실패'));
+        setLicenseStatus('저장 실패', 'error');
+        return;
+      }
+
+      appendLog('라이센스 저장 완료');
+      setLicenseStatus('저장됨', 'warn');
+    }
+
+    async function checkLicense() {
+      const data = getLicenseData();
+
+      if (!data.licenseKey) {
+        appendLog('에러: 라이센스 키를 입력해주세요.');
+        setLicenseStatus('키 없음', 'error');
+        return;
+      }
+
+      if (typeof window.api.verifyLicense !== 'function') {
+        appendLog('라이센스 확인 API가 아직 연결되지 않았습니다. 다음 단계에서 main/preload에 붙이면 됩니다.');
+        setLicenseStatus('연결 전', 'warn');
+        return;
+      }
+
+      appendLog('라이센스 확인 요청중...');
+
+      const res = await window.api.verifyLicense(data);
+
+      if (!res?.ok) {
+        appendLog('에러: ' + (res?.error || '라이센스 확인 실패'));
+        setLicenseStatus('확인 실패', 'error');
+        $('licenseCustomer').textContent = '-';
+        $('licenseExpire').textContent = '-';
+        applyLicenseFeatures(defaultLicenseFeatures);
+        return;
+      }
+
+      const payload = res.data || res;
+
+      $('licenseCustomer').textContent = payload.customerName || '-';
+      $('licenseExpire').textContent = formatDateTime(payload.expiresAt);
+      applyLicenseFeatures(payload.features || {});
+      setLicenseStatus('정상', 'ok');
+
+      appendLog('라이센스 확인 완료');
+    }
+
+    async function prepare() {
+      logEl.textContent = '';
+      setStatus('준비중');
+      appendLog('준비중...');
+
+      const selected = getSelected();
+      const settings = getSettings();
+
+      const res = await window.api.prepareBot({ selected, settings });
+
+      if (!res.ok) {
+        appendLog('에러: ' + res.error);
+        setStatus('오류');
+      } else {
+        setStatus('대기중');
+      }
+    }
+
+    async function start() {
+      const res = await window.api.startBot();
+
+      if (!res.ok) {
+        appendLog('에러: ' + res.error);
+        setStatus('오류');
+      } else {
+        appendLog('시작 신호 전달');
+        setStatus('실행중');
+      }
+    }
+
+    async function stop() {
+      if (typeof window.api.stopBot !== 'function') {
+        appendLog('에러: 중지 기능이 아직 연결되지 않았습니다.');
+        setStatus('오류');
+        return;
+      }
+
+      appendLog('중지 요청중...');
+      setStatus('중지중');
+
+      const res = await window.api.stopBot();
+
+      if (!res?.ok) {
+        appendLog('에러: ' + (res?.error || '중지 실패'));
+        setStatus('오류');
+        return;
+      }
+
+      appendLog('모든 기능 중지 완료');
+      setStatus('대기중');
+    }
+
+    async function pickIdCard() {
+      const res = await window.api.pickIdCard();
+      if (res.ok && res.path) {
+        $('idCardPath').value = res.path;
+      }
+    }
+
+    async function resetCoupang() {
+      const ok = confirm(
+        '쿠팡 리셋을 진행하면 쿠팡 로그인 정보와 브라우저 프로필이 초기화됩니다.\n다음 실행 시 다시 로그인해야 합니다.\n\n계속할까요?'
+      );
+
+      if (!ok) {
+        appendLog('쿠팡 리셋 취소');
+        return;
+      }
+
+      if (typeof window.api.resetCoupang !== 'function') {
+        appendLog('에러: 쿠팡 리셋 기능이 아직 연결되지 않았습니다.');
+        setStatus('오류');
+        return;
+      }
+
+      appendLog('쿠팡 리셋 요청중...');
+      setStatus('초기화중');
+
+      const res = await window.api.resetCoupang();
+
+      if (!res?.ok) {
+        appendLog('에러: ' + (res?.error || '쿠팡 리셋 실패'));
+        setStatus('오류');
+        return;
+      }
+
+      const deleted = Array.isArray(res?.deletedPaths) ? res.deletedPaths : [];
+      appendLog('쿠팡 리셋 완료');
+      if (deleted.length) {
+        deleted.forEach((item) => appendLog(`삭제됨: ${item}`));
+      }
+      appendLog('다음 쿠팡 실행 시 새로 로그인하면 됩니다.');
+      setStatus('대기중');
+    }
+
+    async function summarizeErrors() {
+      if (typeof window.api.summarizeErrorLogs !== 'function') {
+        appendLog('오류 요약 API가 연결되어 있지 않습니다.');
+        return;
+      }
+
+      const res = await window.api.summarizeErrorLogs();
+      if (!res?.ok) {
+        appendLog('오류 요약 실패: ' + (res?.error || '알 수 없음'));
+        return;
+      }
+
+      appendLog('\n' + res.text + '\n');
+      setStatus('오류 요약 완료');
+    }
+
+    window.api.onLog((message) => {
+      appendLog(message);
+
+      if (String(message).includes('작업 완료')) {
+        setStatus('완료');
+      }
+
+      if (String(message).includes('에러')) {
+        setStatus('오류');
+      }
+
+      if (String(message).includes('대기중')) {
+        setStatus('대기중');
+      }
+    });
+
+    $('saveBtn').addEventListener('click', saveSettingsOnly);
+    $('checkServerBtn').addEventListener('click', checkServerConnection);
+    $('pickFinanceFileBtn').addEventListener('click', pickFinanceFile);
+    $('pickFinanceDepositFileBtn').addEventListener('click', pickFinanceDepositFiles);
+    $('pickFinanceWithdrawalFileBtn').addEventListener('click', pickFinanceWithdrawalFiles);
+    $('analyzeFinanceBtn').addEventListener('click', runFinanceAnalysis);
+    $('analyzeStoreClickBtn').addEventListener('click', runStoreClickAnalysis);
+    $('analyzeThreadsBtn').addEventListener('click', runThreadsMarketing);
+    const threadsPlan = $('threadsPlan');
+    const threadsDailyLimit = $('threadsDailyLimit');
+    if (threadsPlan && threadsDailyLimit) {
+      threadsPlan.addEventListener('change', () => {
+        const v = String(threadsPlan.value || 'basic');
+        if (v === 'enterprise') threadsDailyLimit.value = '20';
+        else if (v === 'pro') threadsDailyLimit.value = '16';
+        else threadsDailyLimit.value = '10';
+      });
+      threadsDailyLimit.addEventListener('change', () => {
+        const n = Number(threadsDailyLimit.value || 10);
+        threadsDailyLimit.value = String(Math.max(1, Math.min(20, Math.round(n || 10))));
+      });
+    }
+    const threadsReviewImageInput = $('threadsReviewImageInput');
+    const pickThreadsReviewImagesBtn = $('pickThreadsReviewImagesBtn');
+    if (pickThreadsReviewImagesBtn && threadsReviewImageInput) {
+      pickThreadsReviewImagesBtn.addEventListener('click', () => threadsReviewImageInput.click());
+      threadsReviewImageInput.addEventListener('change', () => {
+        threadsReviewImagePaths = [];
+        const files = Array.from(threadsReviewImageInput.files || []);
+        for (const f of files) {
+          if (f && f.path) threadsReviewImagePaths.push(f.path);
+        }
+        const countEl = $('threadsReviewImageCount');
+        if (countEl) {
+          countEl.textContent = threadsReviewImagePaths.length
+            ? `${threadsReviewImagePaths.length}개 선택됨`
+            : '선택된 파일 없음';
+        }
+        threadsReviewImageInput.value = '';
+      });
+    }
+    const openThreadsMosaicFolderBtn = $('openThreadsMosaicFolderBtn');
+    if (openThreadsMosaicFolderBtn) {
+      openThreadsMosaicFolderBtn.addEventListener('click', async () => {
+        if (typeof window.api.openThreadsMosaicFolder !== 'function') {
+          appendLog('모자이크 폴더 열기가 지원되지 않습니다.');
+          return;
+        }
+        const res = await window.api.openThreadsMosaicFolder();
+        appendLog(res?.ok ? `모자이크 저장 폴더: ${res.path}` : `폴더 열기 실패: ${res?.error || '알 수 없음'}`);
+      });
+    }
+    $('prepareBtn').addEventListener('click', prepare);
+    $('startBtn').addEventListener('click', start);
+    $('stopBtn').addEventListener('click', stop);
+    $('pickIdCardBtn').addEventListener('click', pickIdCard);
+    $('supportBtn').addEventListener('click', () => window.api.openSupport());
+    $('openLogFolderBtn').addEventListener('click', async () => {
+      const res = await window.api.openLogFolder();
+      appendLog(res?.ok ? `로그 폴더 열림: ${res.path}` : `로그 폴더 열기 실패: ${res?.error || '알 수 없음'}`);
+    });
+    $('summarizeErrorsBtn').addEventListener('click', summarizeErrors);
+    $('saveLicenseBtn').addEventListener('click', saveLicenseOnly);
+    $('checkLicenseBtn').addEventListener('click', checkLicense);
+    $('resetCoupangBtn').addEventListener('click', resetCoupang);
+    $('refreshAnalysisBtn').addEventListener('click', () => refreshReviewAnalysis(true));
+    $('analysisMonthFilter').addEventListener('change', onAnalysisFilterChange);
+    $('analysisPlatformFilter').addEventListener('change', onAnalysisFilterChange);
+    featureInputIds.forEach((id) => {
+      $(id).addEventListener('change', () => enforceSingleFeatureSelection(id));
+    });
+
+    (async () => {
+      const settings = await window.api.loadSettings();
+      applySettings(settings);
+      renderFinanceAnalysis(null);
+      renderStoreClickAnalysis(null);
+      renderThreadsMarketing(null);
+
+      await refreshReviewAnalysis();
+
+      if (typeof window.api.loadLicense === 'function') {
+        const savedLicense = await window.api.loadLicense();
+        applySavedLicense(savedLicense || {});
+      } else {
+        applyLicenseFeatures(defaultLicenseFeatures);
+      }
+    })();
+  </script>
+</body>
+</html>

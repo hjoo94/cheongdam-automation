@@ -1,0 +1,42 @@
+{
+  "name": "chungdam-license-admin",
+  "version": "1.0.8",
+  "description": "Cheongdam license admin",
+  "main": "app/main.js",
+  "author": "chungdam",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "playwright": "^1.44.0",
+    "openai": "^4.0.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.chungdam.license-admin",
+    "productName": "Cheongdam License Admin",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "app/**/*",
+      "bot/**/*",
+      ".env",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "app/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

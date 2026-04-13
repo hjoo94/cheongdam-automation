@@ -1,0 +1,22 @@
+---
+description: 청담봇 패치 시 서버·라이센스·설치/업데이트까지 함께 고려
+alwaysApply: true
+---
+
+# 청담봇 배포·연동 관점
+
+`02_client_app/baemin-review-bot`, `03_license_server`, `04_license_admin`를 수정할 때는 아래를 **기본 전제**로 두고 설계·패치한다.
+
+1. **라이센스 서버**  
+   - 기본 공인 주소는 `http://43.203.124.132:4300` (구 `43.201.84.136`는 레거시).  
+   - `security.js`의 HTTP 신뢰 호스트, `PUBLIC_BASE_URL`, 클라이언트 기본 `serverBaseUrl`, 관리자 앱 기본 URL이 **한데 맞는지** 확인한다.
+
+2. **자동 업데이트**  
+   - `package.json` 버전·`CLIENT_APP_VERSION` / `CLIENT_APP_FILE` / `downloads/` exe·매니페스트가 **같은 릴리스**를 가리키는지 확인한다.
+
+3. **Windows NSIS 설치**  
+   - 실행 중인 본 앱·자식 프로세스 때문에 구버전 제거가 실패할 수 있다.  
+   - `build/installer.nsh`의 `customCheckAppRunning`, `main.js`의 `runInstaller` / `cleanupPreparedChildren` 등 **설치 전 종료·지연** 경로를 함부로 제거하거나 약화하지 않는다.
+
+4. **회귀**  
+   - 서버만 고치고 클라이언트 기본 URL이 남거나, 반대로 클라만 올리고 매니페스트가 구버전을 가리키는 **불일치**를 만들지 않는다.

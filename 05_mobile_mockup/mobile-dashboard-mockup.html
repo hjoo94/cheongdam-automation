@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>청담봇 모바일 목업</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: "Segoe UI", "Noto Sans KR", sans-serif;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #0c1020;
+      color: #fff;
+    }
+    .stage { width: 390px; max-width: 100%; }
+    .modes {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .mode-btn {
+      border: 1px solid #3f4f7f;
+      background: #1a2440;
+      color: #e6ebff;
+      border-radius: 12px;
+      padding: 9px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .mode-btn.on {
+      border-color: #94a3ff;
+      background: #2a3f7f;
+    }
+    .phone { display: none; width: 390px; border-radius: 26px; overflow: hidden; }
+    .phone.on { display: block; }
+    .section { padding: 14px; }
+    .mini { font-size: 12px; opacity: 0.8; }
+
+    /* 쿠팡 스타일 */
+    .theme-coupang { background: #fff7f1; color: #2d1d10; border: 1px solid #f3c9ab; }
+    .theme-coupang .header { background: linear-gradient(90deg, #ff6a00, #ff8a33); color: #fff; padding: 14px; font-weight: 700; }
+    .theme-coupang .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .theme-coupang .box { background: #fff; border: 1px solid #ffd8be; border-radius: 12px; padding: 10px; }
+    .theme-coupang .name { font-size: 11px; color: #9a5e35; }
+    .theme-coupang .val { font-size: 18px; font-weight: 800; }
+    .theme-coupang .queue { margin-top: 10px; background: #fff; border: 1px solid #ffd8be; border-radius: 12px; padding: 10px; }
+
+    /* 배민사장님 스타일 */
+    .theme-baemin { background: #ebfffb; color: #083f37; border: 1px solid #b7f6e8; }
+    .theme-baemin .header { background: #1bd8b7; color: #04322b; padding: 14px; font-weight: 800; }
+    .theme-baemin .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .theme-baemin .chip { background: #d2fff5; border: 1px solid #88efda; border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 700; }
+    .theme-baemin .tile { background: #fff; border: 1px solid #bdeee3; border-radius: 14px; padding: 12px; margin-bottom: 8px; }
+    .theme-baemin .tile .title { font-size: 12px; color: #2f7d70; margin-bottom: 4px; }
+    .theme-baemin .tile .big { font-size: 20px; font-weight: 800; }
+    .theme-baemin .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    /* 캐시노트 스타일 */
+    .theme-cashnote { background: #fff9e7; color: #2f2916; border: 1px solid #f1dc92; }
+    .theme-cashnote .header { background: #ffcc34; color: #3b2d00; padding: 14px; font-weight: 800; }
+    .theme-cashnote .finance { background: #fff; border: 1px solid #f0dfa1; border-radius: 12px; padding: 10px; margin-bottom: 8px; }
+    .theme-cashnote .finance .label { font-size: 11px; color: #766120; }
+    .theme-cashnote .finance .amount { font-size: 22px; font-weight: 800; letter-spacing: 0.2px; }
+    .theme-cashnote .chart {
+      height: 60px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #fff7cf 0%, #fff 100%);
+      border: 1px dashed #e9c650;
+      display: flex;
+      align-items: end;
+      gap: 6px;
+      padding: 8px;
+    }
+    .theme-cashnote .bar { width: 12px; background: #f4b400; border-radius: 4px 4px 2px 2px; }
+
+    /* 추천(프리미엄 AI) 스타일 */
+    .theme-recommended {
+      background: radial-gradient(700px 200px at 80% -20%, #5d1a83 0%, #1b0f2c 60%, #10081b 100%);
+      border: 1px solid #55326e;
+      color: #f4e9ff;
+    }
+    .theme-recommended .header {
+      padding: 14px;
+      font-weight: 800;
+      border-bottom: 1px solid #55326e;
+      backdrop-filter: blur(6px);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .theme-recommended .glass {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 14px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+    .theme-recommended .score { font-size: 26px; font-weight: 800; color: #d7b1ff; }
+    .theme-recommended .list { font-size: 12px; line-height: 1.6; color: #e9d5ff; }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="modes">
+      <button class="mode-btn on" data-mode="coupang">쿠팡 모드</button>
+      <button class="mode-btn" data-mode="baemin">배민사장님 앱모드</button>
+      <button class="mode-btn" data-mode="cashnote">캐시노트 모드</button>
+      <button class="mode-btn" data-mode="recommended">추천 모드</button>
+    </section>
+
+    <section id="screen-coupang" class="phone theme-coupang on">
+      <div class="header">쿠팡 파트너센터 스타일</div>
+      <div class="section">
+        <div class="kpis">
+          <div class="box"><div class="name">쿠팡 답글</div><div class="val">71</div></div>
+          <div class="box"><div class="name">블라인드</div><div class="val">9</div></div>
+          <div class="box"><div class="name">성공률</div><div class="val">98.4%</div></div>
+          <div class="box"><div class="name">실패</div><div class="val">2</div></div>
+        </div>
+        <div class="queue">
+          <div class="mini">리뷰 블라인드/게시중단 요청 후보</div>
+          비방/허위 추정 리뷰 1건 접수 대기
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-baemin" class="phone theme-baemin">
+      <div class="header">배민사장님 앱 스타일</div>
+      <div class="section">
+        <div class="chips">
+          <span class="chip">배민 답글 ON</span>
+          <span class="chip">블라인드 자동화</span>
+          <span class="chip">긴급중지 OFF</span>
+        </div>
+        <div class="tile"><div class="title">오늘 답글 완료</div><div class="big">138건</div></div>
+        <div class="grid">
+          <div class="tile"><div class="title">블라인드</div><div class="big">11</div></div>
+          <div class="tile"><div class="title">민원 메일</div><div class="big">9</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-cashnote" class="phone theme-cashnote">
+      <div class="header">캐시노트 스타일</div>
+      <div class="section">
+        <div class="finance">
+          <div class="label">오늘 예상 절감 인건비</div>
+          <div class="amount">₩ 128,000</div>
+        </div>
+        <div class="finance">
+          <div class="label">자동화 처리량 추이</div>
+          <div class="chart">
+            <div class="bar" style="height:20px"></div>
+            <div class="bar" style="height:30px"></div>
+            <div class="bar" style="height:42px"></div>
+            <div class="bar" style="height:38px"></div>
+            <div class="bar" style="height:50px"></div>
+            <div class="bar" style="height:45px"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-recommended" class="phone theme-recommended">
+      <div class="header">추천 모드 (AI Premium)</div>
+      <div class="section">
+        <div class="glass">
+          <div class="mini">오늘 추천 품질 점수</div>
+          <div class="score">92</div>
+        </div>
+        <div class="glass list">
+          - 즉시 승인 추천 답글 3건<br />
+          - 리스크 검토 필요 블라인드 1건<br />
+          - 고반응 스레드 초안 2건
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    function applyMode(key) {
+      document.querySelectorAll('.mode-btn').forEach((btn) => {
+        btn.classList.toggle('on', btn.dataset.mode === key);
+      });
+      document.querySelectorAll('.phone').forEach((screen) => {
+        screen.classList.toggle('on', screen.id === `screen-${key}`);
+      });
+    }
+    document.querySelectorAll('.mode-btn').forEach((btn) => {
+      btn.addEventListener('click', () => applyMode(btn.dataset.mode));
+    });
+  </script>
+</body>
+</html>

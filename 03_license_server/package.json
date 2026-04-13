@@ -1,0 +1,11 @@
+{
+  "name": "chungdam-license-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local license and GPT relay server for Chungdam apps",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "sync:client-installer": "node scripts/sync-client-installer.js"
+  }
+}
