@@ -1,6 +1,6 @@
 {
   "name": "chungdam-license-admin",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Cheongdam license admin",
   "main": "app/main.js",
   "author": "chungdam",

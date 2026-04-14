@@ -17,9 +17,9 @@ const UPDATE_MANIFEST = {
     notes: '설치 패키지 용량 최적화·업데이트 무결성(대용량 SHA)·전역 오류 로깅',
   },
   admin: {
-    version: process.env.ADMIN_APP_VERSION || '1.0.8',
-    fileName: process.env.ADMIN_APP_FILE || 'Cheongdam License Admin Setup 1.0.8.exe',
-    notes: '일반/고급 답글 라이센스 선택 및 자동 업데이트 안정화',
+    version: process.env.ADMIN_APP_VERSION || '1.0.9',
+    fileName: process.env.ADMIN_APP_FILE || 'Cheongdam License Admin Setup 1.0.9.exe',
+    notes: '신규 라이센스 서버 주소 기본값·구 IP 자동 마이그레이션',
   },
 };
 
