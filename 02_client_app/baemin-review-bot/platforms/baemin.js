@@ -12,6 +12,20 @@ const { buildReviewLogText } = require('../utils/reviewLogFormatter');
 const { launchChromiumWithFallback } = require('../utils/browserLauncher');
 const { appendUserError } = require('../utils/errorCollector');
 
+function resolveBadwordsPath() {
+  const candidates = [
+    path.join(process.resourcesPath || '', 'app.asar.unpacked', 'badwords.json'),
+    path.resolve(__dirname, '../badwords.json'),
+    path.resolve(process.cwd(), 'badwords.json'),
+  ];
+  for (const p of candidates) {
+    try {
+      if (require('fs').existsSync(p)) return p;
+    } catch (_) {}
+  }
+  return candidates[candidates.length - 1];
+}
+
 const STORE_ID =
   process.env.BAEMIN_STORE_ID ||
   process.env.STORE_ID ||
@@ -24,7 +38,7 @@ const MAX_REVIEWS = Number(process.env.MAX_REVIEWS || 500000);
 const BAEMIN_RELOAD_RECOVERY_ROUNDS = Number(process.env.BAEMIN_RELOAD_RECOVERY_ROUNDS || 3);
 const AUTO_BLIND_LOW_RATING_UNANSWERED =
   String(process.env.AUTO_BLIND_LOW_RATING_UNANSWERED || 'true').toLowerCase() !== 'false';
-const BADWORDS_PATH = path.resolve(__dirname, '../badwords.json');
+const BADWORDS_PATH = resolveBadwordsPath();
 let runtimeBadwords = [];
 
 function loadBadwords() {

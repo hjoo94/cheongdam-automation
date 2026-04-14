@@ -77,6 +77,12 @@ applyRuntimeJsonEnv();
 
 const { applyRuntimeEnv, getFeatureMeta } = require('./actions');
 const { runSingleFeature } = require('./index');
+let security = null;
+try {
+  security = require('../app/security');
+} catch (e) {
+  console.warn('[runner] security load failed:', e.message);
+}
 
 let appendUserError = () => {};
 try {
@@ -114,6 +120,24 @@ async function main() {
 
   console.log(`[runner] 준비 실행: ${meta.label}`);
   console.log('[runner] 설정 적용 완료');
+
+  let licenseResult = { valid: false, reason: 'unknown' };
+  try {
+    if (security && typeof security.validateLicense === 'function') {
+      licenseResult = await security.validateLicense();
+    } else {
+      console.warn('[runner] security module not available, skipping license check');
+      licenseResult = { valid: false, reason: 'security_module_missing' };
+    }
+  } catch (licenseErr) {
+    console.error('[runner] license validation error:', licenseErr.message);
+    licenseResult = { valid: false, reason: 'license_check_exception' };
+  }
+
+  if (!licenseResult.valid) {
+    console.error('[runner] license invalid:', licenseResult.reason);
+    return;
+  }
 
   const result = await runSingleFeature(featureKey, settings, {
     log: (msg) => console.log(msg),

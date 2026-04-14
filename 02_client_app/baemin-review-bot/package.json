@@ -50,6 +50,7 @@
     "asarUnpack": [
       "app/config.js",
       "app/security.js",
+      "badwords.json",
       "utils/errorCollector.js",
       "bot/runner.js",
       "bot/**/*",
