@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>[오프라인] 청담봇 모바일 체험</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a1628;
+      color: #e2e8f0;
+      padding: 16px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .banner {
+      background: #1e3a5f;
+      border: 1px solid #3b82f6;
+      color: #93c5fd;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .card {
+      background: #1a1a2e;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+    h1 { font-size: 18px; color: #7b8cde; margin-bottom: 6px; text-align: center; }
+    .sub { font-size: 12px; color: #888; text-align: center; margin-bottom: 16px; }
+    label { font-size: 11px; color: #94a3b8; display: block; margin-bottom: 4px; }
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+    .btn-go { background: #6366f1; color: #fff; }
+    .btn-toggle { background: #e74c3c; color: #fff; }
+    .btn-toggle.on { background: #27ae60; }
+    .btn-out { background: #334155; color: #cbd5e1; font-size: 13px; }
+    .badge {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      margin: 10px 0;
+    }
+    .b-on { background: #14532d; color: #4ade80; }
+    .b-off { background: #450a0a; color: #fca5a5; }
+    .b-unk { background: #334155; color: #94a3b8; }
+    .log {
+      font-size: 11px;
+      font-family: ui-monospace, monospace;
+      background: #020617;
+      color: #a5f3fc;
+      padding: 10px;
+      border-radius: 8px;
+      max-height: 120px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="banner">
+    <strong>오프라인 체험</strong> — 서버·라이선스 없음.<br>
+    아래 버튼만 눌러서 실제 API와 같은 JSON 형태를 흉내 냅니다.
+  </div>
+
+  <div id="screen-login" class="card">
+    <h1>로그인 (Mock)</h1>
+    <p class="sub">아무 키나 입력 후 로그인</p>
+    <label>라이선스 키</label>
+    <input id="mkKey" type="text" placeholder="TEST-KEY" value="TEST-KEY">
+    <label>deviceFingerprint (선택)</label>
+    <input id="mkFp" type="text" placeholder="비워도 됨" value="">
+    <button type="button" class="btn-go" onclick="mockLogin()">로그인</button>
+    <div class="log" id="mkLog1"></div>
+  </div>
+
+  <div id="screen-dash" class="card hidden">
+    <h1>대시보드 (Mock)</h1>
+    <p class="sub">토글은 메모리만 바꿈 (서버 없음)</p>
+    <div id="mkBadge" class="badge b-unk">확인 중</div>
+    <button type="button" id="mkToggleBtn" class="btn-toggle" onclick="mockPush()">긴급 정지 토글</button>
+    <button type="button" class="btn-out" onclick="mockLogout()">로그아웃</button>
+    <p style="font-size:11px;color:#64748b;margin-top:10px">push 응답 후 1.5초 뒤 state/get 을 흉내 내 갱신합니다.</p>
+    <div class="log" id="mkLog2"></div>
+  </div>
+
+<script>
+  let mockToken = '';
+  let mockStateRow = null;
+
+  function log(el, title, obj) {
+    const eln = document.getElementById(el);
+    const line = '--- ' + title + ' ---\n' + JSON.stringify(obj, null, 2) + '\n\n' + (eln.textContent || '');
+    eln.textContent = line.slice(0, 4000);
+  }
+
+  function threadsStopFromRow(row) {
+    if (!row) return undefined;
+    const tp = row.status && row.status.threadsPolicy;
+    if (tp && typeof tp.threadsEmergencyStop === 'boolean') return tp.threadsEmergencyStop;
+    if (typeof row.threads_emergency_stop === 'boolean') return row.threads_emergency_stop;
+    return undefined;
+  }
+
+  function renderDash() {
+    const badge = document.getElementById('mkBadge');
+    const btn = document.getElementById('mkToggleBtn');
+    const s = threadsStopFromRow(mockStateRow);
+    if (s === true) {
+      badge.className = 'badge b-off';
+      badge.textContent = '⛔ 긴급 정지 중';
+      btn.className = 'btn-toggle on';
+      btn.textContent = '▶ 봇 재개';
+    } else if (s === false) {
+      badge.className = 'badge b-on';
+      badge.textContent = '✅ 정상 운영 중';
+      btn.className = 'btn-toggle';
+      btn.textContent = '⏹ 긴급 정지';
+    } else {
+      badge.className = 'badge b-unk';
+      badge.textContent = '❓ 미확인';
+      btn.className = 'btn-toggle';
+      btn.textContent = '긴급 정지 토글';
+    }
+  }
+
+  function mockLogin() {
+    const key = document.getElementById('mkKey').value.trim() || 'TEST-KEY';
+    const fp = document.getElementById('mkFp').value.trim();
+    const body = { licenseKey: key };
+    if (fp) body.deviceFingerprint = fp;
+    const res = { ok: true, token: 'mock.jwt.' + Date.now(), expiresIn: 3600 };
+    log('mkLog1', 'POST /api/mobile/auth/login 요청 body', body);
+    log('mkLog1', 'POST /api/mobile/auth/login 응답', res);
+    mockToken = res.token;
+    mockStateRow = {
+      customerName: '체험 사용자',
+      appVersion: '1.0.32-offline',
+      status: {
+        threadsPolicy: { threadsEmergencyStop: false },
+        mobileFeatureToggles: { baeminReply: true, coupangReply: true },
+      },
+    };
+    document.getElementById('screen-login').classList.add('hidden');
+    document.getElementById('screen-dash').classList.remove('hidden');
+    log('mkLog2', 'GET /api/mobile/state/get 응답', { ok: true, state: mockStateRow });
+    renderDash();
+  }
+
+  function mockPush() {
+    const prev = threadsStopFromRow(mockStateRow) === true;
+    const next = !prev;
+    const pushRes = { ok: true, id: 'cmd_mock_' + Date.now(), threadsEmergencyStop: next };
+    log('mkLog2', 'POST /api/mobile/commands/push 응답', pushRes);
+    setTimeout(() => {
+      mockStateRow = JSON.parse(JSON.stringify(mockStateRow || {}));
+      if (!mockStateRow.status) mockStateRow.status = {};
+      if (!mockStateRow.status.threadsPolicy) mockStateRow.status.threadsPolicy = {};
+      mockStateRow.status.threadsPolicy.threadsEmergencyStop = next;
+      log('mkLog2', '1.5초 후 GET state/get (큐 반영 가정)', { ok: true, state: mockStateRow });
+      renderDash();
+    }, 1500);
+  }
+
+  function mockLogout() {
+    mockToken = '';
+    mockStateRow = null;
+    document.getElementById('screen-dash').classList.add('hidden');
+    document.getElementById('screen-login').classList.remove('hidden');
+    document.getElementById('mkLog2').textContent = '';
+  }
+</script>
+</body>
+</html>

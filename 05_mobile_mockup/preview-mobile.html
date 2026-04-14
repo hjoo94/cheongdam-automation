@@ -94,9 +94,13 @@
   <h1>청담봇</h1>
   <p class="subtitle">모바일 대시보드</p>
   <input type="password" placeholder="라이선스 키 입력" value="MOCK-LICENSE-KEY" readonly>
+  <input type="text" placeholder="디바이스 핑거프린트 (선택)" value="MOCK-DEVICE-FP-001" readonly>
+  <p style="font-size:11px;color:#666;margin-bottom:16px;text-align:center">
+    ※ 기기 바인딩 라이선스는 핑거프린트 입력 필요
+  </p>
   <button type="button" class="btn-primary">로그인</button>
   <p class="msg">※ 잘못된 라이선스입니다. (에러 예시)</p>
-  <p class="mock-note">POST /api/mobile/auth/login → JWT 반환</p>
+  <p class="mock-note">POST /api/mobile/auth/login — body: { licenseKey, deviceFingerprint? } — 응답: { ok: true, token, expiresIn: 3600 }</p>
 </div>
 
 <div class="card" id="screen-dash-on" style="display:none">

@@ -1,6 +1,6 @@
 {
   "name": "chungdam-bot",
-  "version": "1.0.31",
+  "version": "1.0.32",
   "description": "Cheongdam review automation client",
   "main": "app/main.js",
   "author": "chungdam",

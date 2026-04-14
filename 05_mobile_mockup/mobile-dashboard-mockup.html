@@ -46,12 +46,17 @@
       background: #0f0f1a;
       color: #e0e0e0;
       font-size: 15px;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       outline: none;
       transition: border 0.2s;
     }
     input:focus { border-color: #7b8cde; }
-    .hint { font-size: 11px; color: #666; margin: -8px 0 14px; }
+    .fp-hint {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 16px;
+      text-align: center;
+    }
     button {
       width: 100%;
       padding: 14px;
@@ -82,10 +87,11 @@
     .section-title { font-size: 13px; color: #888; margin-bottom: 6px; }
     .info-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
     .info-label { color: #888; }
-    .info-value { color: #e0e0e0; font-family: monospace; }
+    .info-value { color: #e0e0e0; font-family: monospace; font-size: 12px; }
     .divider { border: none; border-top: 1px solid #2a2a3e; margin: 20px 0; }
     #login-screen, #dashboard-screen { display: none; }
     .spinner { text-align: center; color: #7b8cde; font-size: 13px; margin: 10px 0; }
+    .url-hint { font-size: 10px; color: #555; text-align: center; margin-top: 12px; }
   </style>
 </head>
 <body>
@@ -95,10 +101,11 @@
     <h1>청담봇</h1>
     <p class="subtitle">모바일 대시보드</p>
     <input type="password" id="licenseInput" placeholder="라이선스 키 입력" autocomplete="off">
-    <p class="hint">기기에 묶인 라이선스는 아래에 기기 지문 입력</p>
-    <input type="text" id="deviceInput" placeholder="deviceFingerprint (선택)" autocomplete="off">
+    <input type="text" id="fpInput" placeholder="디바이스 핑거프린트 (선택)" autocomplete="off">
+    <p class="fp-hint">※ 기기 바인딩 라이선스는 핑거프린트 입력 필요</p>
     <button class="btn-primary" type="button" onclick="doLogin()">로그인</button>
     <p class="msg" id="loginMsg"></p>
+    <p class="url-hint">로컬 서버: 이 페이지 URL에 <code>?local=1</code> 붙이면 API가 127.0.0.1:4300 으로 갑니다.</p>
   </div>
 
   <div id="dashboard-screen">
@@ -121,7 +128,7 @@
 
     <p class="section-title">연결 정보</p>
     <div class="info-row">
-      <span class="info-label">서버</span>
+      <span class="info-label">API 베이스</span>
       <span class="info-value" id="serverInfo">-</span>
     </div>
     <div class="info-row">
@@ -134,16 +141,30 @@
 </div>
 
 <script>
-  const BASE_URL = 'http://43.201.84.136:4300';
+  const BASE_URL = (() => {
+    try {
+      const q = new URLSearchParams(window.location.search || '');
+      if (q.get('local') === '1') return 'http://127.0.0.1:4300';
+    } catch (e) { /* file:// */ }
+    return 'http://43.201.84.136:4300';
+  })();
+
   let refreshTimer = null;
 
-  function threadsStopFromRow(row) {
-    if (!row || !row.status || !row.status.threadsPolicy) return undefined;
-    return row.status.threadsPolicy.threadsEmergencyStop === true;
+  function threadsEmergencyStopFromState(state) {
+    if (!state || typeof state !== 'object') return undefined;
+    const tp = state.status && state.status.threadsPolicy;
+    if (tp && typeof tp.threadsEmergencyStop === 'boolean') {
+      return tp.threadsEmergencyStop;
+    }
+    if (typeof state.threads_emergency_stop === 'boolean') {
+      return state.threads_emergency_stop;
+    }
+    return undefined;
   }
 
   window.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('serverInfo').textContent = '43.201.84.136:4300';
+    document.getElementById('serverInfo').textContent = BASE_URL.replace(/^https?:\/\//, '');
     const token = localStorage.getItem('cdToken');
     if (token) {
       showDashboard();
@@ -168,15 +189,19 @@
 
   async function doLogin() {
     const key = document.getElementById('licenseInput').value.trim();
-    const deviceFingerprint = document.getElementById('deviceInput').value.trim();
+    const fp = document.getElementById('fpInput') ? document.getElementById('fpInput').value.trim() : '';
     const msgEl = document.getElementById('loginMsg');
     msgEl.textContent = '';
     if (!key) { msgEl.textContent = '라이선스 키를 입력하세요.'; return; }
+
+    const body = { licenseKey: key };
+    if (fp) body.deviceFingerprint = fp;
+
     try {
       const res = await fetch(`${BASE_URL}/api/mobile/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ licenseKey: key, deviceFingerprint }),
+        body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -200,8 +225,9 @@
     const token = localStorage.getItem('cdToken');
     if (!token) { showLogin(); return; }
     const spinner = document.getElementById('spinnerMsg');
-    spinner.textContent = '갱신 중...';
+    if (spinner) spinner.textContent = '갱신 중...';
     document.getElementById('dashMsg').textContent = '';
+
     try {
       const res = await fetch(`${BASE_URL}/api/mobile/state/get`, {
         method: 'GET',
@@ -212,25 +238,26 @@
         return;
       }
       const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.ok === false) {
+      if (data.ok) {
+        renderState(data.state);
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ko-KR');
+      } else {
         document.getElementById('dashMsg').textContent = data.error || '상태 조회 실패';
         renderState(undefined);
-        return;
       }
-      renderState(data.state);
-      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ko-KR');
     } catch (err) {
       console.error('[State Error]', err);
       document.getElementById('dashMsg').textContent = '상태 조회 실패. 네트워크를 확인하세요.';
     } finally {
-      spinner.textContent = '';
+      if (spinner) spinner.textContent = '';
     }
   }
 
-  function renderState(row) {
+  function renderState(state) {
     const badge = document.getElementById('statusBadge');
     const btn = document.getElementById('toggleBtn');
-    const stopped = threadsStopFromRow(row);
+    const stopped = threadsEmergencyStopFromState(state);
+
     if (stopped === true) {
       badge.className = 'status-badge badge-off';
       badge.textContent = '⛔ 긴급 정지 중';
@@ -243,7 +270,9 @@
       btn.textContent = '⏹ 긴급 정지';
     } else {
       badge.className = 'status-badge badge-unknown';
-      badge.textContent = row ? '❓ 상태 미확인 (데스크톱에서 앱 실행 시 동기화)' : '❓ 상태 없음';
+      badge.textContent = state
+        ? '❓ 상태 미확인 (데스크톱 앱이 state/update 하면 표시)'
+        : '❓ 상태 없음';
     }
   }
 
@@ -252,6 +281,7 @@
     if (!token) { showLogin(); return; }
     const msgEl = document.getElementById('dashMsg');
     msgEl.textContent = '';
+
     try {
       const res = await fetch(`${BASE_URL}/api/mobile/commands/push`, {
         method: 'POST',
@@ -266,19 +296,11 @@
         return;
       }
       const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.ok === false) {
+      if (data.ok) {
+        setTimeout(() => { fetchState(); }, 1500);
+      } else {
         msgEl.textContent = data.error || '명령 실행 실패';
-        return;
       }
-      if (typeof data.threadsEmergencyStop === 'boolean') {
-        renderState({
-          status: {
-            threadsPolicy: { threadsEmergencyStop: data.threadsEmergencyStop },
-          },
-        });
-      }
-      await fetchState();
-      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ko-KR');
     } catch (err) {
       console.error('[Toggle Error]', err);
       msgEl.textContent = '서버에 연결할 수 없습니다.';
@@ -289,7 +311,8 @@
     localStorage.removeItem('cdToken');
     showLogin();
     document.getElementById('licenseInput').value = '';
-    document.getElementById('deviceInput').value = '';
+    const fp = document.getElementById('fpInput');
+    if (fp) fp.value = '';
     document.getElementById('loginMsg').textContent = '';
   }
 </script>
