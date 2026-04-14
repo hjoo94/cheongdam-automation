@@ -1616,7 +1616,7 @@
           <div class="field full">
             <label for="serverBaseUrl">서버 주소</label>
             <div class="field-row">
-              <input id="serverBaseUrl" type="text" placeholder="예: http://43.202.181.184:4300" />
+              <input id="serverBaseUrl" type="text" placeholder="예: http://서버IP:4300" />
               <button class="secondary-btn" id="checkServerBtn" type="button">연결 확인</button>
             </div>
           </div>
@@ -2130,7 +2130,7 @@
     }
 
     function applySettings(settings = {}) {
-      $('serverBaseUrl').value = settings.serverBaseUrl || 'http://43.202.181.184:4300';
+      $('serverBaseUrl').value = settings.serverBaseUrl || '';
       $('storeName').value = settings.storeName || '';
       $('reviewRule').value = settings.reviewRule || '';
       $('baeminStoreId').value = settings.baeminStoreId || '';
