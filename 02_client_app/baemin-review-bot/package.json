@@ -48,8 +48,10 @@
     ],
     "asar": true,
     "asarUnpack": [
-      "app/security.js",
       "app/config.js",
+      "app/security.js",
+      "utils/errorCollector.js",
+      "bot/runner.js",
       "bot/**/*",
       "platforms/**/*",
       "utils/**/*",

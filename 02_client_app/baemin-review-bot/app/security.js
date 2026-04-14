@@ -1,14 +1,41 @@
 const fs = require('fs');
+const path = require('path');
 const crypto = require('crypto');
 
 const ENCRYPTED_PREFIX = 'enc:v1:';
 const SECRET_SETTING_KEYS = new Set(['threadsAccessToken']);
 const SENSITIVE_KEY_PATTERN = /(token|secret|password|passwd|pwd|authorization|api[_-]?key|license[_-]?key|access[_-]?token|refresh[_-]?token|cookie|set-cookie)/i;
 
-const {
-  DEFAULT_SERVER_BASE_URL,
-  migrateServerBaseUrl,
-} = require('./config');
+function resolveConfigModule() {
+  const candidates = [
+    path.join(__dirname, 'config.js'),
+    ...(process.resourcesPath ? [path.join(process.resourcesPath, 'app.asar.unpacked', 'app', 'config.js')] : []),
+    path.join(__dirname, '..', 'app', 'config.js'),
+  ];
+  for (const c of candidates) {
+    try {
+      return require(c);
+    } catch {
+      /* try next */
+    }
+  }
+  let version = '0.0.0';
+  try {
+    version = require(path.join(__dirname, '..', 'package.json')).version || version;
+  } catch {
+    /* ignore */
+  }
+  return {
+    DEFAULT_SERVER_BASE_URL: 'http://43.202.181.184:4300',
+    migrateServerBaseUrl: (v) => String(v || '').trim().replace(/\/+$/, '') || 'http://43.202.181.184:4300',
+    LEGACY_SERVER_BASE_URLS: [],
+    isLegacyServerBaseUrl: () => false,
+    normalizeUrlText: (v) => String(v || '').trim().replace(/\/+$/, ''),
+    CURRENT_VERSION: version,
+  };
+}
+
+const { DEFAULT_SERVER_BASE_URL, migrateServerBaseUrl } = resolveConfigModule();
 
 function migrateLegacyLicenseServerUrl(value) {
   const trimmed = String(value || '').trim().replace(/\/+$/, '');
@@ -169,6 +196,17 @@ function constantTimeEqualHex(left, right) {
   return crypto.timingSafeEqual(a, b);
 }
 
+/** 패치 버전 ±1 이내면 호환으로 본다(향후 서버·클라 버전 정합 비교용). */
+function isVersionCompatible(serverVersion, localVersion) {
+  if (!serverVersion || !localVersion) return true;
+  const sp = String(serverVersion).trim().split('.').map((n) => Number(n) || 0);
+  const lp = String(localVersion).trim().split('.').map((n) => Number(n) || 0);
+  const [sMaj, sMin, sPat] = [sp[0] || 0, sp[1] || 0, sp[2] || 0];
+  const [lMaj, lMin, lPat] = [lp[0] || 0, lp[1] || 0, lp[2] || 0];
+  if (sMaj !== lMaj || sMin !== lMin) return false;
+  return Math.abs(sPat - lPat) <= 1;
+}
+
 module.exports = {
   ENCRYPTED_PREFIX,
   migrateLegacyLicenseServerUrl,
@@ -180,4 +218,5 @@ module.exports = {
   decryptSettingsSecrets,
   sha256File,
   constantTimeEqualHex,
+  isVersionCompatible,
 };

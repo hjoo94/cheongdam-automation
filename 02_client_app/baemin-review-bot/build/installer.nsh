@@ -1,4 +1,7 @@
 ; 설치/제거 전 실행 중인 본 앱을 트리 단위로 강제 종료합니다.
+; electron-builder NSIS 템플릿에는 customInit 이 없고(설치 본문은 customInstall 만 선택적),
+; 설치 전 종료는 이 파일의 customCheckAppRunning 만 사용합니다. 전역 electron.exe taskkill 은 다른 Electron 앱까지
+; 종료하므로 넣지 않습니다.
 ; (_CHECK_APP_RUNNING 을 호출하지 않음 — GetProcessInfo 포함 순서 문제로 언인스톨러 빌드가 실패할 수 있음)
 ; 자동 업데이트 시 메인 프로세스가 아직 내려가는 중이면 FIND_PROCESS 가 살아 있다고 판단하므로,
 ; taskkill + 대기 루프를 여러 번 돌린 뒤에만 사용자에게 Retry 를 냅니다.

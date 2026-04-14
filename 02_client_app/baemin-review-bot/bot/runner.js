@@ -77,7 +77,13 @@ applyRuntimeJsonEnv();
 
 const { applyRuntimeEnv, getFeatureMeta } = require('./actions');
 const { runSingleFeature } = require('./index');
-const { appendUserError } = require('../utils/errorCollector');
+
+let appendUserError = () => {};
+try {
+  appendUserError = require('../utils/errorCollector').appendUserError;
+} catch (e) {
+  console.warn('[runner] errorCollector load failed:', e.message);
+}
 
 function decodePayload(encoded) {
   if (!encoded) {

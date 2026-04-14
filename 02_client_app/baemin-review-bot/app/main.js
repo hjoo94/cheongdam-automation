@@ -273,8 +273,70 @@
     sendLog(`[MIGRATE] serverBaseUrl 구IP → 신IP 자동 교체 완료 (${current} -> ${migrated})`);
   }
 
+  const MIN_UPDATE_FREE_BYTES = 300 * 1024 * 1024;
+
+  function getFreeDiskSpaceBytesForPath(targetPath) {
+    if (process.platform !== 'win32') return null;
+    try {
+      const root = path.parse(path.resolve(targetPath)).root;
+      const m = root.match(/^([A-Za-z]:)/);
+      const devId = m ? m[1] : 'C:';
+      const out = execSync(`wmic logicaldisk where "DeviceID='${devId}'" get FreeSpace /value`, {
+        encoding: 'utf8',
+        windowsHide: true,
+        timeout: 12000,
+      });
+      const match = out.match(/FreeSpace=(\d+)/);
+      return match ? parseInt(match[1], 10) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function cleanupStaleUpdateArtifacts(updatesDir, tmpRoot) {
+    try {
+      if (updatesDir && fs.existsSync(updatesDir)) {
+        for (const name of fs.readdirSync(updatesDir)) {
+          if (
+            name.endsWith('.download') ||
+            name.startsWith('chungdam-install-wrap-') ||
+            name.endsWith('.exe.tmp')
+          ) {
+            try {
+              fs.unlinkSync(path.join(updatesDir, name));
+              sendLog(`[업데이트] 임시 정리(updates): ${name}`);
+            } catch {}
+          }
+        }
+      }
+    } catch {}
+    try {
+      if (!tmpRoot || !fs.existsSync(tmpRoot)) return;
+      for (const f of fs.readdirSync(tmpRoot)) {
+        const hit =
+          f.startsWith('cheongdam-update') ||
+          f.endsWith('.exe.tmp') ||
+          /baemin-review-bot-setup|chungdam-bot-setup|Cheongdam Bot Setup.*\.tmp$/i.test(f);
+        if (!hit) continue;
+        try {
+          fs.unlinkSync(path.join(tmpRoot, f));
+          sendLog(`[업데이트] 임시 정리(tmp): ${f}`);
+        } catch {}
+      }
+    } catch {}
+  }
+
   async function downloadFile(url, targetPath, expectedSha256 = '', licenseServerBaseUrl = '') {
     assertHttpsDownloadUrl(url, licenseServerBaseUrl);
+    const updatesDir = path.join(userDataPath, 'updates');
+    cleanupStaleUpdateArtifacts(updatesDir, os.tmpdir());
+    const freeBytes = getFreeDiskSpaceBytesForPath(targetPath);
+    if (freeBytes !== null && freeBytes < MIN_UPDATE_FREE_BYTES) {
+      const freeMB = Math.floor(freeBytes / 1024 / 1024);
+      const msg = `[업데이트] 디스크 공간 부족: 여유 ${freeMB}MB (최소 약 300MB 필요). 임시·오래된 설치 파일을 정리한 뒤 다시 시도하세요.`;
+      sendLog(msg);
+      throw new Error(msg);
+    }
     let response;
     try {
       response = await fetch(url);
@@ -288,7 +350,15 @@
     const tempPath = `${targetPath}.download`;
     try {
       if (response.body) {
-        await pipeline(Readable.fromWeb(response.body), fs.createWriteStream(tempPath));
+        const ws = fs.createWriteStream(tempPath);
+        ws.on('error', (err) => {
+          try {
+            fs.rmSync(tempPath, { force: true });
+          } catch {}
+          appendUserError('update.download_stream', err, { url });
+          sendLog(`[업데이트] 다운로드 스트림 오류: ${err.message}`);
+        });
+        await pipeline(Readable.fromWeb(response.body), ws);
       } else {
         const buffer = Buffer.from(await response.arrayBuffer());
         fs.writeFileSync(tempPath, buffer);
