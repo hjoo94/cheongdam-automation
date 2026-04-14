@@ -54,7 +54,7 @@ const MOBILE_JWT_EXPIRES_SEC = 3600;
 const mobileLoginRateByIp = new Map();
 
 const PORT = Number(process.env.PORT || 4300);
-const HOST = process.env.HOST || '127.0.0.1';
+const HOST = process.env.HOST || '0.0.0.0';
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'change-this-admin-secret';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const OPENAI_MODEL_ADVANCED = process.env.OPENAI_MODEL_ADVANCED || 'gpt-4.1';
