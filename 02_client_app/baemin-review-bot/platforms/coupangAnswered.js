@@ -1122,6 +1122,17 @@ async function clickNextReviewPage(page) {
     reason: 'coupang-blind-next-page',
   });
 }
+
+async function waitForBlindCardSelector(page) {
+  try {
+    await page.waitForSelector('text=사장님 댓글 등록하기', { timeout: 10000 });
+    return true;
+  } catch {
+    log('[PATCH-03] Blind 요소 미발견 - 해당 리뷰 스킵 처리');
+    return false;
+  }
+}
+
 async function processAllReviews(page, context) {
   const processed = new Set();
   const collected = [];
@@ -1129,7 +1140,12 @@ async function processAllReviews(page, context) {
   let idleRounds = 0;
 
   while (blindCount < MAX_REVIEWS) {
-    await sleep(800);
+    const hasBlindSelector = await waitForBlindCardSelector(page);
+    if (!hasBlindSelector) {
+      idleRounds += 1;
+      if (idleRounds >= MAX_IDLE_ROUNDS) break;
+      continue;
+    }
     const cards = await getReviewCardHandles(page);
     log(`현재 감지된 쿠팡 리뷰 카드 수: ${cards.length}, 블라인드 접수건수: ${blindCount}`);
 
