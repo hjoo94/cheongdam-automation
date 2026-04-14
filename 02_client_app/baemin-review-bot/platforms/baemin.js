@@ -24,6 +24,29 @@ const MAX_REVIEWS = Number(process.env.MAX_REVIEWS || 500000);
 const BAEMIN_RELOAD_RECOVERY_ROUNDS = Number(process.env.BAEMIN_RELOAD_RECOVERY_ROUNDS || 3);
 const AUTO_BLIND_LOW_RATING_UNANSWERED =
   String(process.env.AUTO_BLIND_LOW_RATING_UNANSWERED || 'true').toLowerCase() !== 'false';
+const BADWORDS_PATH = path.resolve(__dirname, '../badwords.json');
+let runtimeBadwords = [];
+
+function loadBadwords() {
+  try {
+    if (!fs.existsSync(BADWORDS_PATH)) {
+      log('[PATCH-04] badwords.json 없음 - 빈 배열로 실행');
+      runtimeBadwords = [];
+      return;
+    }
+
+    const raw = fs.readFileSync(BADWORDS_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    const words = Array.isArray(parsed?.badwords)
+      ? parsed.badwords.map((item) => String(item || '').trim()).filter(Boolean)
+      : [];
+    runtimeBadwords = words;
+    log(`[PATCH-04] badwords.json 로드 완료 - ${runtimeBadwords.length}개 금지어 적용`);
+  } catch (error) {
+    runtimeBadwords = [];
+    log(`[PATCH-04] badwords.json 파싱 실패 - 빈 배열로 실행 (${error.message})`);
+  }
+}
 
 function appendUnifiedReviewLog(review, replyText) {
   return appendUniqueReviewLog({
@@ -586,19 +609,19 @@ async function fillReplyAndSubmit(cardHandle, replyText) {
 
 function buildSafeReplyText(original = '', dialogMessage = '') {
   const bannedWords = Array.from(String(dialogMessage || '').matchAll(/'([^']+)'/g)).map((m) => m[1]).filter(Boolean);
+  const mergedBadwords = Array.from(new Set([...bannedWords, ...runtimeBadwords]));
   let text = String(original || '').trim();
 
-  for (const word of bannedWords) {
+  for (const word of mergedBadwords) {
     if (!word) continue;
     text = text.split(word).join('');
   }
 
   text = text
-    .replace(/에\s*미/g, '어머님')
     .replace(/\s+/g, ' ')
     .trim();
 
-  if (text.length < 20 || bannedWords.some((word) => text.includes(word))) {
+  if (text.length < 20 || mergedBadwords.some((word) => text.includes(word))) {
     return '소중한 리뷰 감사합니다. 앞으로도 더 좋은 맛과 서비스로 보답하겠습니다. 다시 찾아주시면 정성껏 준비하겠습니다.';
   }
 
@@ -777,6 +800,7 @@ async function processAllReviews(page, context) {
 }
 
 async function runBaemin() {
+  loadBadwords();
   const browser = await launchChromiumWithFallback({
     headless: false,
     slowMo: 120,

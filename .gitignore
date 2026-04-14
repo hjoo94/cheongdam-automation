@@ -6,6 +6,7 @@ licenses.json
 **/licenses.json
 **/.deploy/
 **/server.env
+02_client_app/baemin-review-bot/badwords.json
 .deploy-update/
 *.tar.gz
 
