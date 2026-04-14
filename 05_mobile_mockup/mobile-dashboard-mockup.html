@@ -3,195 +3,232 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>청담봇 모바일 목업</title>
+  <title>청담봇</title>
   <style>
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      margin: 0;
-      padding: 20px;
-      font-family: "Segoe UI", "Noto Sans KR", sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background: #0a0d1a;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: #0c1020;
-      color: #fff;
+      color: #e8ecff;
+      padding: 16px;
+      max-width: 440px;
+      margin: 0 auto;
     }
-    .stage { width: 390px; max-width: 100%; }
-    .modes {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .mode-btn {
-      border: 1px solid #3f4f7f;
-      background: #1a2440;
-      color: #e6ebff;
-      border-radius: 12px;
-      padding: 9px 8px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .mode-btn.on {
-      border-color: #94a3ff;
-      background: #2a3f7f;
-    }
-    .phone { display: none; width: 390px; border-radius: 26px; overflow: hidden; }
-    .phone.on { display: block; }
-    .section { padding: 14px; }
-    .mini { font-size: 12px; opacity: 0.8; }
-
-    /* 쿠팡 스타일 */
-    .theme-coupang { background: #fff7f1; color: #2d1d10; border: 1px solid #f3c9ab; }
-    .theme-coupang .header { background: linear-gradient(90deg, #ff6a00, #ff8a33); color: #fff; padding: 14px; font-weight: 700; }
-    .theme-coupang .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .theme-coupang .box { background: #fff; border: 1px solid #ffd8be; border-radius: 12px; padding: 10px; }
-    .theme-coupang .name { font-size: 11px; color: #9a5e35; }
-    .theme-coupang .val { font-size: 18px; font-weight: 800; }
-    .theme-coupang .queue { margin-top: 10px; background: #fff; border: 1px solid #ffd8be; border-radius: 12px; padding: 10px; }
-
-    /* 배민사장님 스타일 */
-    .theme-baemin { background: #ebfffb; color: #083f37; border: 1px solid #b7f6e8; }
-    .theme-baemin .header { background: #1bd8b7; color: #04322b; padding: 14px; font-weight: 800; }
-    .theme-baemin .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-    .theme-baemin .chip { background: #d2fff5; border: 1px solid #88efda; border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 700; }
-    .theme-baemin .tile { background: #fff; border: 1px solid #bdeee3; border-radius: 14px; padding: 12px; margin-bottom: 8px; }
-    .theme-baemin .tile .title { font-size: 12px; color: #2f7d70; margin-bottom: 4px; }
-    .theme-baemin .tile .big { font-size: 20px; font-weight: 800; }
-    .theme-baemin .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
-    /* 캐시노트 스타일 */
-    .theme-cashnote { background: #fff9e7; color: #2f2916; border: 1px solid #f1dc92; }
-    .theme-cashnote .header { background: #ffcc34; color: #3b2d00; padding: 14px; font-weight: 800; }
-    .theme-cashnote .finance { background: #fff; border: 1px solid #f0dfa1; border-radius: 12px; padding: 10px; margin-bottom: 8px; }
-    .theme-cashnote .finance .label { font-size: 11px; color: #766120; }
-    .theme-cashnote .finance .amount { font-size: 22px; font-weight: 800; letter-spacing: 0.2px; }
-    .theme-cashnote .chart {
-      height: 60px;
+    h1 { font-size: 1.1rem; margin-bottom: 12px; }
+    label { display: block; font-size: 12px; opacity: 0.85; margin-bottom: 4px; }
+    input {
+      width: 100%;
+      padding: 10px 12px;
       border-radius: 10px;
-      background: linear-gradient(180deg, #fff7cf 0%, #fff 100%);
-      border: 1px dashed #e9c650;
-      display: flex;
-      align-items: end;
-      gap: 6px;
-      padding: 8px;
+      border: 1px solid #2a3358;
+      background: #151929;
+      color: #fff;
+      margin-bottom: 10px;
     }
-    .theme-cashnote .bar { width: 12px; background: #f4b400; border-radius: 4px 4px 2px 2px; }
-
-    /* 추천(프리미엄 AI) 스타일 */
-    .theme-recommended {
-      background: radial-gradient(700px 200px at 80% -20%, #5d1a83 0%, #1b0f2c 60%, #10081b 100%);
-      border: 1px solid #55326e;
-      color: #f4e9ff;
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 6px;
     }
-    .theme-recommended .header {
-      padding: 14px;
-      font-weight: 800;
-      border-bottom: 1px solid #55326e;
-      backdrop-filter: blur(6px);
-      background: rgba(255, 255, 255, 0.03);
-    }
-    .theme-recommended .glass {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+    .btn-primary { background: linear-gradient(135deg,#7c3aed,#a855f7); color: #fff; }
+    .btn-secondary { background: #222b45; color: #aab4e6; }
+    .err { color: #f87171; font-size: 13px; margin-top: 8px; white-space: pre-wrap; }
+    .card {
+      background: #151929;
+      border: 1px solid #2a3358;
       border-radius: 14px;
-      padding: 10px;
-      margin-bottom: 8px;
+      padding: 14px;
+      margin-top: 12px;
+      font-size: 13px;
+      line-height: 1.5;
     }
-    .theme-recommended .score { font-size: 26px; font-weight: 800; color: #d7b1ff; }
-    .theme-recommended .list { font-size: 12px; line-height: 1.6; color: #e9d5ff; }
+    .row { margin-top: 6px; }
+    .hidden { display: none !important; }
+    pre.raw { font-size: 11px; overflow: auto; max-height: 160px; background: #0d1020; padding: 8px; border-radius: 8px; }
   </style>
 </head>
 <body>
-  <main class="stage">
-    <section class="modes">
-      <button class="mode-btn on" data-mode="coupang">쿠팡 모드</button>
-      <button class="mode-btn" data-mode="baemin">배민사장님 앱모드</button>
-      <button class="mode-btn" data-mode="cashnote">캐시노트 모드</button>
-      <button class="mode-btn" data-mode="recommended">추천 모드</button>
-    </section>
+  <div id="auth-panel">
+    <h1>청담봇 모바일</h1>
+    <label for="licenseKey">라이선스 키</label>
+    <input id="licenseKey" type="password" autocomplete="off" placeholder="라이선스 키" />
+    <label for="deviceFingerprint">기기 지문 (라이선스에 기기가 묶인 경우 필수)</label>
+    <input id="deviceFingerprint" type="text" autocomplete="off" placeholder="비워두면 미등록 라이선스만 가능" />
+    <button type="button" class="btn-primary" id="btn-login">로그인</button>
+    <div id="auth-error" class="err hidden"></div>
+  </div>
 
-    <section id="screen-coupang" class="phone theme-coupang on">
-      <div class="header">쿠팡 파트너센터 스타일</div>
-      <div class="section">
-        <div class="kpis">
-          <div class="box"><div class="name">쿠팡 답글</div><div class="val">71</div></div>
-          <div class="box"><div class="name">블라인드</div><div class="val">9</div></div>
-          <div class="box"><div class="name">성공률</div><div class="val">98.4%</div></div>
-          <div class="box"><div class="name">실패</div><div class="val">2</div></div>
-        </div>
-        <div class="queue">
-          <div class="mini">리뷰 블라인드/게시중단 요청 후보</div>
-          비방/허위 추정 리뷰 1건 접수 대기
-        </div>
-      </div>
-    </section>
+  <div id="app-panel" class="hidden">
+    <h1>대시보드</h1>
+    <button type="button" class="btn-secondary" id="btn-logout">로그아웃</button>
+    <div class="card">
+      <div class="row"><strong>고객명</strong> <span id="v-customer">—</span></div>
+      <div class="row"><strong>앱 버전</strong> <span id="v-version">—</span></div>
+      <div class="row"><strong>스레드 긴급중지</strong> <span id="v-stop">—</span></div>
+      <div class="row"><strong>기능 토글</strong></div>
+      <pre class="raw" id="v-toggles">—</pre>
+    </div>
+    <button type="button" class="btn-primary" id="btn-toggle">토글 (스레드 긴급중지 반전)</button>
+    <div id="app-error" class="err hidden"></div>
+  </div>
 
-    <section id="screen-baemin" class="phone theme-baemin">
-      <div class="header">배민사장님 앱 스타일</div>
-      <div class="section">
-        <div class="chips">
-          <span class="chip">배민 답글 ON</span>
-          <span class="chip">블라인드 자동화</span>
-          <span class="chip">긴급중지 OFF</span>
-        </div>
-        <div class="tile"><div class="title">오늘 답글 완료</div><div class="big">138건</div></div>
-        <div class="grid">
-          <div class="tile"><div class="title">블라인드</div><div class="big">11</div></div>
-          <div class="tile"><div class="title">민원 메일</div><div class="big">9</div></div>
-        </div>
-      </div>
-    </section>
-
-    <section id="screen-cashnote" class="phone theme-cashnote">
-      <div class="header">캐시노트 스타일</div>
-      <div class="section">
-        <div class="finance">
-          <div class="label">오늘 예상 절감 인건비</div>
-          <div class="amount">₩ 128,000</div>
-        </div>
-        <div class="finance">
-          <div class="label">자동화 처리량 추이</div>
-          <div class="chart">
-            <div class="bar" style="height:20px"></div>
-            <div class="bar" style="height:30px"></div>
-            <div class="bar" style="height:42px"></div>
-            <div class="bar" style="height:38px"></div>
-            <div class="bar" style="height:50px"></div>
-            <div class="bar" style="height:45px"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="screen-recommended" class="phone theme-recommended">
-      <div class="header">추천 모드 (AI Premium)</div>
-      <div class="section">
-        <div class="glass">
-          <div class="mini">오늘 추천 품질 점수</div>
-          <div class="score">92</div>
-        </div>
-        <div class="glass list">
-          - 즉시 승인 추천 답글 3건<br />
-          - 리스크 검토 필요 블라인드 1건<br />
-          - 고반응 스레드 초안 2건
-        </div>
-      </div>
-    </section>
-  </main>
   <script>
-    function applyMode(key) {
-      document.querySelectorAll('.mode-btn').forEach((btn) => {
-        btn.classList.toggle('on', btn.dataset.mode === key);
-      });
-      document.querySelectorAll('.phone').forEach((screen) => {
-        screen.classList.toggle('on', screen.id === `screen-${key}`);
-      });
+    const BASE_URL = 'http://43.201.84.136:4300';
+    const TOKEN_KEY = 'cdToken';
+
+    function showErr(el, msg) {
+      if (!msg) {
+        el.classList.add('hidden');
+        el.textContent = '';
+        return;
+      }
+      el.textContent = msg;
+      el.classList.remove('hidden');
     }
-    document.querySelectorAll('.mode-btn').forEach((btn) => {
-      btn.addEventListener('click', () => applyMode(btn.dataset.mode));
+
+    function authHeaders() {
+      const t = localStorage.getItem(TOKEN_KEY);
+      return {
+        'Content-Type': 'application/json',
+        ...(t ? { Authorization: 'Bearer ' + t } : {}),
+      };
+    }
+
+    async function api(path, opts) {
+      const url = BASE_URL + path;
+      const init = {
+        method: opts.method || 'GET',
+        headers: { ...authHeaders() },
+      };
+      if (opts.body != null) {
+        init.body = JSON.stringify(opts.body);
+      } else if (init.method === 'GET') {
+        delete init.headers['Content-Type'];
+      }
+      const res = await fetch(url, init);
+      let data = null;
+      try {
+        data = await res.json();
+      } catch (e) {
+        console.error('JSON parse', e);
+      }
+      if (!res.ok) {
+        const msg = (data && data.error) || res.status + ' ' + res.statusText;
+        throw new Error(msg);
+      }
+      if (data && data.ok === false) {
+        throw new Error(data.error || '요청 실패');
+      }
+      return data;
+    }
+
+    async function doLogin() {
+      const licenseKey = document.getElementById('licenseKey').value.trim();
+      const deviceFingerprint = document.getElementById('deviceFingerprint').value.trim();
+      showErr(document.getElementById('auth-error'), '');
+      if (!licenseKey) {
+        showErr(document.getElementById('auth-error'), '라이선스 키를 입력하세요.');
+        return;
+      }
+      try {
+        const data = await fetch(BASE_URL + '/api/mobile/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ licenseKey, deviceFingerprint }),
+        }).then(async (r) => {
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(j.error || r.statusText);
+          return j;
+        });
+        if (!data.token) throw new Error('토큰이 없습니다.');
+        localStorage.setItem(TOKEN_KEY, data.token);
+        document.getElementById('auth-panel').classList.add('hidden');
+        document.getElementById('app-panel').classList.remove('hidden');
+        await refreshState();
+      } catch (e) {
+        console.error(e);
+        showErr(document.getElementById('auth-error'), String(e.message || e));
+      }
+    }
+
+    async function refreshState() {
+      showErr(document.getElementById('app-error'), '');
+      try {
+        const data = await api('/api/mobile/state/get', { method: 'GET' });
+        const st = data.state;
+        if (!st) {
+          document.getElementById('v-customer').textContent = '(데스크톱 앱이 켜져 상태를 올리면 표시됩니다)';
+          document.getElementById('v-version').textContent = '—';
+          document.getElementById('v-stop').textContent = '—';
+          document.getElementById('v-toggles').textContent = '—';
+          return;
+        }
+        document.getElementById('v-customer').textContent = st.customerName || '—';
+        document.getElementById('v-version').textContent = st.appVersion || '—';
+        const stop = st.status && st.status.threadsPolicy && st.status.threadsPolicy.threadsEmergencyStop;
+        document.getElementById('v-stop').textContent = stop ? 'ON' : 'OFF';
+        const tg = st.status && st.status.mobileFeatureToggles;
+        document.getElementById('v-toggles').textContent = tg ? JSON.stringify(tg, null, 2) : '—';
+      } catch (e) {
+        console.error(e);
+        showErr(document.getElementById('app-error'), String(e.message || e));
+      }
+    }
+
+    async function doToggle() {
+      showErr(document.getElementById('app-error'), '');
+      try {
+        await api('/api/mobile/commands/push', {
+          method: 'POST',
+          body: { command: 'toggle' },
+        });
+        await refreshState();
+      } catch (e) {
+        console.error(e);
+        showErr(document.getElementById('app-error'), String(e.message || e));
+      }
+    }
+
+    function doLogout() {
+      localStorage.removeItem(TOKEN_KEY);
+      document.getElementById('app-panel').classList.add('hidden');
+      document.getElementById('auth-panel').classList.remove('hidden');
+    }
+
+    let pollTimer = null;
+    function startPoll() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(() => {
+        if (!localStorage.getItem(TOKEN_KEY)) return;
+        if (document.getElementById('app-panel').classList.contains('hidden')) return;
+        refreshState().catch(() => {});
+      }, 10000);
+    }
+
+    document.getElementById('btn-login').addEventListener('click', () => {
+      doLogin().then(() => startPoll());
     });
+    document.getElementById('btn-logout').addEventListener('click', () => {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = null;
+      doLogout();
+    });
+    document.getElementById('btn-toggle').addEventListener('click', doToggle);
+
+    if (localStorage.getItem(TOKEN_KEY)) {
+      document.getElementById('auth-panel').classList.add('hidden');
+      document.getElementById('app-panel').classList.remove('hidden');
+      refreshState()
+        .then(() => startPoll())
+        .catch(() => {
+          doLogout();
+        });
+    }
   </script>
 </body>
 </html>

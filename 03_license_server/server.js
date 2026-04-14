@@ -41,6 +41,18 @@ function loadEnvFile(filePath) {
 
 loadEnvFile(ENV_PATH);
 
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = String(process.env.JWT_SECRET || '').trim();
+if (!JWT_SECRET) {
+  console.error('[chungdam-server] FATAL: JWT_SECRET 이 필요합니다. 03_license_server/.env 에 설정하세요.');
+  process.exit(1);
+}
+
+const MOBILE_WEB_ORIGIN = String(process.env.MOBILE_WEB_ORIGIN || '').trim();
+const MOBILE_JWT_EXPIRES_SEC = 3600;
+const mobileLoginRateByIp = new Map();
+
 const PORT = Number(process.env.PORT || 4300);
 const HOST = process.env.HOST || '127.0.0.1';
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'change-this-admin-secret';
@@ -965,6 +977,160 @@ async function handleGptThreadsDrafts(req, res) {
   sendJson(res, 200, { ok: true, drafts });
 }
 
+function getClientIpForRateLimit(req) {
+  const xff = req.headers['x-forwarded-for'];
+  if (typeof xff === 'string' && xff.trim()) return xff.split(',')[0].trim();
+  return req.socket?.remoteAddress || 'unknown';
+}
+
+function checkMobileLoginRateLimit(ip) {
+  const now = Date.now();
+  const win = 60_000;
+  const max = 10;
+  let rec = mobileLoginRateByIp.get(ip);
+  if (!rec || now > rec.resetAt) {
+    mobileLoginRateByIp.set(ip, { count: 1, resetAt: now + win });
+    return true;
+  }
+  if (rec.count >= max) return false;
+  rec.count += 1;
+  return true;
+}
+
+function mobileApiCorsHeaders() {
+  const h = {
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-admin-secret',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  };
+  if (MOBILE_WEB_ORIGIN) {
+    h['Access-Control-Allow-Origin'] = MOBILE_WEB_ORIGIN;
+    h['Access-Control-Allow-Credentials'] = 'true';
+  }
+  return h;
+}
+
+function sendMobileJson(res, statusCode, body) {
+  res.writeHead(statusCode, {
+    'Content-Type': 'application/json; charset=utf-8',
+    ...mobileApiCorsHeaders(),
+  });
+  res.end(JSON.stringify(body));
+}
+
+function verifyBearerMobileJwt(req) {
+  const raw = String(req.headers.authorization || '').trim();
+  const m = /^Bearer\s+(.+)$/i.exec(raw);
+  if (!m) {
+    return { ok: false, code: 'no_token', message: 'Authorization Bearer 가 없습니다.' };
+  }
+  try {
+    const decoded = jwt.verify(m[1], JWT_SECRET);
+    const licenseKey = String(decoded.licenseKey || '').trim();
+    const deviceFingerprint = String(decoded.deviceFingerprint || '').trim();
+    if (!licenseKey) {
+      return { ok: false, code: 'invalid', message: '유효하지 않은 토큰입니다.' };
+    }
+    const licenses = readLicenses();
+    const license = findLicense(licenses, licenseKey);
+    const validation = validateLicenseForUse(license, deviceFingerprint);
+    if (!validation.ok) {
+      return { ok: false, code: 'forbidden', message: validation.error };
+    }
+    return { ok: true, code: 'ok', message: '', licenseKey, deviceFingerprint, license };
+  } catch (e) {
+    if (e.name === 'TokenExpiredError') {
+      return { ok: false, code: 'expired', message: '토큰이 만료되었습니다.' };
+    }
+    return { ok: false, code: 'invalid', message: '유효하지 않은 토큰입니다.' };
+  }
+}
+
+function sendMobileJwtError(res, vu) {
+  const code = vu.code === 'expired' ? 403 : (vu.code === 'no_token' ? 401 : 403);
+  sendMobileJson(res, code, { ok: false, error: vu.message || 'forbidden' });
+}
+
+async function handleMobileAuthLogin(req, res) {
+  const ip = getClientIpForRateLimit(req);
+  if (!checkMobileLoginRateLimit(ip)) {
+    sendMobileJson(res, 429, { ok: false, error: '로그인 시도가 너무 많습니다. 잠시 후 다시 시도하세요.' });
+    return;
+  }
+  let body = {};
+  try {
+    body = await readJsonBody(req);
+  } catch {
+    sendMobileJson(res, 400, { ok: false, error: 'JSON 본문이 필요합니다.' });
+    return;
+  }
+  const licenseKey = String(body.licenseKey || '').trim();
+  const deviceFingerprint = String(body.deviceFingerprint || body.deviceId || '').trim();
+  if (!licenseKey) {
+    sendMobileJson(res, 400, { ok: false, error: 'licenseKey가 필요합니다.' });
+    return;
+  }
+  const licenses = readLicenses();
+  const license = findLicense(licenses, licenseKey);
+  const validation = validateLicenseForUse(license, deviceFingerprint);
+  if (!validation.ok) {
+    sendMobileJson(res, 401, { ok: false, error: validation.error });
+    return;
+  }
+  const issuedAt = Math.floor(Date.now() / 1000);
+  const expiresAt = issuedAt + MOBILE_JWT_EXPIRES_SEC;
+  const token = jwt.sign(
+    { licenseKey, deviceFingerprint, issuedAt, expiresAt },
+    JWT_SECRET,
+    { expiresIn: MOBILE_JWT_EXPIRES_SEC }
+  );
+  sendMobileJson(res, 200, { ok: true, token, expiresIn: MOBILE_JWT_EXPIRES_SEC });
+}
+
+async function handleMobileCommandPush(req, res) {
+  const vu = verifyBearerMobileJwt(req);
+  if (!vu.ok) {
+    sendMobileJwtError(res, vu);
+    return;
+  }
+  let body = {};
+  try {
+    body = await readJsonBody(req);
+  } catch {
+    body = {};
+  }
+  if (String(body.command || '').trim() !== 'toggle') {
+    sendMobileJson(res, 400, { ok: false, error: 'command: toggle 만 지원합니다.' });
+    return;
+  }
+  const key = buildMobileKey(vu.licenseKey, vu.deviceFingerprint);
+  const state = readMobileState();
+  const row = state[key] || {};
+  const prevStop = !!(row.status && row.status.threadsPolicy && row.status.threadsPolicy.threadsEmergencyStop);
+  const merged = {
+    licenseKey: vu.licenseKey,
+    deviceFingerprint: vu.deviceFingerprint,
+    commandType: 'threads_emergency_stop',
+    payload: { enabled: !prevStop },
+  };
+  const inner = authMobileClient(merged);
+  if (!inner.ok) {
+    sendMobileJson(res, 403, { ok: false, error: inner.error });
+    return;
+  }
+  const commands = readMobileCommands();
+  const id = `cmd_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
+  commands.push({
+    id,
+    key: buildMobileKey(inner.licenseKey, inner.deviceFingerprint),
+    commandType: 'threads_emergency_stop',
+    payload: merged.payload,
+    createdAt: nowIso(),
+    consumedAt: '',
+  });
+  writeMobileCommands(commands);
+  sendMobileJson(res, 200, { ok: true, id, threadsEmergencyStop: merged.payload.enabled });
+}
+
 async function handleMobileStateUpdate(req, res) {
   const body = await readJsonBody(req);
   const auth = authMobileClient(body);
@@ -991,33 +1157,33 @@ async function handleMobileStateUpdate(req, res) {
   sendJson(res, 200, { ok: true, updatedAt: now });
 }
 
-async function handleMobileStateGet(req, res) {
-  const body = await readJsonBody(req);
+async function handleMobileStateGet(req, res, fixedBody = null) {
+  const body = fixedBody != null ? fixedBody : await readJsonBody(req);
   const auth = authMobileClient(body);
   if (!auth.ok) {
-    sendJson(res, 200, { ok: false, error: auth.error });
+    sendMobileJson(res, 200, { ok: false, error: auth.error });
     return;
   }
   const key = buildMobileKey(auth.licenseKey, auth.deviceFingerprint);
   const state = readMobileState();
-  sendJson(res, 200, { ok: true, state: state[key] || null });
+  sendMobileJson(res, 200, { ok: true, state: state[key] || null });
 }
 
-async function handleMobileCommandCreate(req, res) {
-  const body = await readJsonBody(req);
+async function handleMobileCommandCreate(req, res, fixedBody = null) {
+  const body = fixedBody != null ? fixedBody : await readJsonBody(req);
   const auth = authMobileClient(body);
   if (!auth.ok) {
-    sendJson(res, 200, { ok: false, error: auth.error });
+    sendMobileJson(res, 200, { ok: false, error: auth.error });
     return;
   }
   const commandType = String(body.commandType || '').trim();
   if (!commandType) {
-    sendJson(res, 400, { ok: false, error: 'commandType이 필요합니다.' });
+    sendMobileJson(res, 400, { ok: false, error: 'commandType이 필요합니다.' });
     return;
   }
   const allowed = new Set(['threads_emergency_stop', 'feature_toggle', 'threads_policy_update']);
   if (!allowed.has(commandType)) {
-    sendJson(res, 400, { ok: false, error: '지원하지 않는 commandType 입니다.' });
+    sendMobileJson(res, 400, { ok: false, error: '지원하지 않는 commandType 입니다.' });
     return;
   }
   const payload = body.payload && typeof body.payload === 'object' ? body.payload : {};
@@ -1025,14 +1191,14 @@ async function handleMobileCommandCreate(req, res) {
     const allowedFeature = new Set(['baeminReply', 'baeminBlind', 'coupangReply', 'coupangBlind', 'naverMail', 'threadsMarketing']);
     const featureKey = String(payload.featureKey || '').trim();
     if (!allowedFeature.has(featureKey)) {
-      sendJson(res, 400, { ok: false, error: 'feature_toggle payload.featureKey가 유효하지 않습니다.' });
+      sendMobileJson(res, 400, { ok: false, error: 'feature_toggle payload.featureKey가 유효하지 않습니다.' });
       return;
     }
   }
   if (commandType === 'threads_policy_update') {
     const limit = Number(payload.threadsDailyLimit ?? 10);
     if (!Number.isFinite(limit) || limit < 1 || limit > 20) {
-      sendJson(res, 400, { ok: false, error: 'threadsDailyLimit은 1~20 범위여야 합니다.' });
+      sendMobileJson(res, 400, { ok: false, error: 'threadsDailyLimit은 1~20 범위여야 합니다.' });
       return;
     }
   }
@@ -1047,7 +1213,7 @@ async function handleMobileCommandCreate(req, res) {
     consumedAt: '',
   });
   writeMobileCommands(commands);
-  sendJson(res, 200, { ok: true, id });
+  sendMobileJson(res, 200, { ok: true, id });
 }
 
 async function handleMobileCommandPull(req, res) {
@@ -1078,13 +1244,35 @@ async function handleMobileCommandPull(req, res) {
 
 const server = http.createServer(async (req, res) => {
   try {
+    const requestUrl = new URL(req.url, `http://${req.headers.host || `${HOST}:${PORT}`}`);
+    const pathname = requestUrl.pathname;
+
     if (req.method === 'OPTIONS') {
+      if (pathname.startsWith('/api/mobile/')) {
+        res.writeHead(204, {
+          ...mobileApiCorsHeaders(),
+          'Access-Control-Max-Age': '86400',
+        });
+        res.end();
+        return;
+      }
       sendJson(res, 200, { ok: true });
       return;
     }
 
-    const requestUrl = new URL(req.url, `http://${req.headers.host || `${HOST}:${PORT}`}`);
-    const pathname = requestUrl.pathname;
+    if (req.method === 'GET' && (pathname === '/mobile' || pathname === '/mobile/')) {
+      const htmlPath = path.join(__dirname, '..', '05_mobile_mockup', 'mobile-dashboard-mockup.html');
+      if (!fs.existsSync(htmlPath)) {
+        sendText(res, 404, 'Not Found');
+        return;
+      }
+      res.writeHead(200, {
+        'Content-Type': 'text/html; charset=utf-8',
+        ...mobileApiCorsHeaders(),
+      });
+      fs.createReadStream(htmlPath).pipe(res);
+      return;
+    }
 
     if (req.method === 'GET' && pathname === '/health') {
       sendJson(res, 200, { ok: true, status: 'healthy' });
@@ -1163,16 +1351,42 @@ const server = http.createServer(async (req, res) => {
       await handleGptThreadsDrafts(req, res);
       return;
     }
+    if (req.method === 'POST' && pathname === '/api/mobile/auth/login') {
+      await handleMobileAuthLogin(req, res);
+      return;
+    }
     if (req.method === 'POST' && pathname === '/api/mobile/state/update') {
       await handleMobileStateUpdate(req, res);
       return;
     }
-    if (req.method === 'POST' && pathname === '/api/mobile/state/get') {
-      await handleMobileStateGet(req, res);
+    if ((req.method === 'GET' || req.method === 'POST') && pathname === '/api/mobile/state/get') {
+      const vu = verifyBearerMobileJwt(req);
+      if (!vu.ok) {
+        sendMobileJwtError(res, vu);
+        return;
+      }
+      const fixedBody = { licenseKey: vu.licenseKey, deviceFingerprint: vu.deviceFingerprint };
+      await handleMobileStateGet(req, res, fixedBody);
       return;
     }
     if (req.method === 'POST' && pathname === '/api/mobile/commands/create') {
-      await handleMobileCommandCreate(req, res);
+      const vu = verifyBearerMobileJwt(req);
+      if (!vu.ok) {
+        sendMobileJwtError(res, vu);
+        return;
+      }
+      const body = await readJsonBody(req);
+      const merged = {
+        licenseKey: vu.licenseKey,
+        deviceFingerprint: vu.deviceFingerprint,
+        commandType: body.commandType,
+        payload: body.payload,
+      };
+      await handleMobileCommandCreate(req, res, merged);
+      return;
+    }
+    if (req.method === 'POST' && pathname === '/api/mobile/commands/push') {
+      await handleMobileCommandPush(req, res);
       return;
     }
     if (req.method === 'POST' && pathname === '/api/mobile/commands/pull') {
