@@ -9,7 +9,7 @@ const LICENSES_PATH = path.join(DATA_DIR, 'licenses.json');
 const MOBILE_STATE_PATH = path.join(DATA_DIR, 'mobile-state.json');
 const MOBILE_COMMANDS_PATH = path.join(DATA_DIR, 'mobile-commands.json');
 const DOWNLOADS_DIR = path.join(__dirname, 'downloads');
-const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://43.203.124.132:4300';
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://43.202.181.184:4300';
 const UPDATE_MANIFEST = {
   client: {
     version: process.env.CLIENT_APP_VERSION || '1.0.33',
