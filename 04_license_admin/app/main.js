@@ -32,7 +32,7 @@ loadLocalEnv();
 
 const userDataPath = app.getPath('userData');
 const adminConfigPath = path.join(userDataPath, 'admin-config.json');
-const DEFAULT_SERVER_BASE_URL = process.env.CHUNGDAM_SERVER_URL || 'http://43.203.124.132:4300';
+const DEFAULT_SERVER_BASE_URL = process.env.CHUNGDAM_SERVER_URL || 'http://43.202.181.184:4300';
 const DEFAULT_ADMIN_SECRET = process.env.ADMIN_SECRET || 'change-this-admin-secret';
 const PLACEHOLDER_ADMIN_SECRET = 'change-this-admin-secret';
 const UPDATE_APP_ID = 'admin';
@@ -53,10 +53,15 @@ function safeWriteJson(filePath, data) {
 function migrateLegacyAdminServerUrl(value) {
   const trimmed = String(value || '').trim().replace(/\/+$/, '');
   if (!trimmed) return '';
+  const legacyToCurrent = {
+    '43.201.84.136': '43.202.181.184',
+    '43.203.124.132': '43.202.181.184',
+  };
   try {
     const u = new URL(trimmed);
-    if (u.hostname === '43.201.84.136') {
-      u.hostname = '43.203.124.132';
+    const nextHost = legacyToCurrent[u.hostname];
+    if (nextHost) {
+      u.hostname = nextHost;
       return u.toString().replace(/\/+$/, '');
     }
   } catch {
@@ -209,7 +214,7 @@ function assertAdminDownloadUrl(url, serverBaseUrl) {
     base = null;
   }
   if (base && parsed.origin === base.origin) return;
-  const trusted = new Set(['43.203.124.132', '43.201.84.136', '127.0.0.1', 'localhost']);
+  const trusted = new Set(['43.202.181.184', '43.203.124.132', '43.201.84.136', '127.0.0.1', 'localhost']);
   const extra = String(process.env.CHUNGDAM_HTTP_TRUST_HOSTS || '')
     .split(/[,;\s]+/)
     .map((s) => s.trim())
@@ -235,7 +240,7 @@ function formatAdminFetchError(error, requestUrl) {
     return `${msg} (${code}) · ${url}`;
   }
   if (/fetch failed/i.test(msg)) {
-    return `연결 실패(서버·방화벽·주소 확인): ${url} — 기본 라이센스 서버는 http://43.203.124.132:4300 입니다.`;
+    return `연결 실패(서버·방화벽·주소 확인): ${url} — 기본 라이센스 서버는 http://43.202.181.184:4300 입니다.`;
   }
   return `${msg} · ${url}`;
 }
