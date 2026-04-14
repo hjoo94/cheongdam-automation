@@ -1,6 +1,6 @@
 {
   "name": "chungdam-bot",
-  "version": "1.0.33",
+  "version": "1.0.34",
   "description": "Cheongdam review automation client",
   "main": "app/main.js",
   "author": "chungdam",
@@ -49,6 +49,7 @@
     "asar": true,
     "asarUnpack": [
       "app/security.js",
+      "app/config.js",
       "bot/**/*",
       "platforms/**/*",
       "utils/**/*",
