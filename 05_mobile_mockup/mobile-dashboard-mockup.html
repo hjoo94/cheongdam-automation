@@ -1,234 +1,298 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>청담봇</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>청담봇 모바일 대시보드</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
-      background: #0a0d1a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f0f1a;
+      color: #e0e0e0;
       min-height: 100vh;
-      color: #e8ecff;
-      padding: 16px;
-      max-width: 440px;
-      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
-    h1 { font-size: 1.1rem; margin-bottom: 12px; }
-    label { display: block; font-size: 12px; opacity: 0.85; margin-bottom: 4px; }
+    .card {
+      background: #1a1a2e;
+      border-radius: 16px;
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #7b8cde;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #888;
+      text-align: center;
+      margin-bottom: 28px;
+    }
     input {
       width: 100%;
-      padding: 10px 12px;
+      padding: 14px 16px;
       border-radius: 10px;
-      border: 1px solid #2a3358;
-      background: #151929;
-      color: #fff;
-      margin-bottom: 10px;
+      border: 1.5px solid #333;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      font-size: 15px;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border 0.2s;
     }
+    input:focus { border-color: #7b8cde; }
+    .hint { font-size: 11px; color: #666; margin: -8px 0 14px; }
     button {
       width: 100%;
-      padding: 12px;
-      border-radius: 12px;
-      border: none;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 6px;
-    }
-    .btn-primary { background: linear-gradient(135deg,#7c3aed,#a855f7); color: #fff; }
-    .btn-secondary { background: #222b45; color: #aab4e6; }
-    .err { color: #f87171; font-size: 13px; margin-top: 8px; white-space: pre-wrap; }
-    .card {
-      background: #151929;
-      border: 1px solid #2a3358;
-      border-radius: 14px;
       padding: 14px;
-      margin-top: 12px;
-      font-size: 13px;
-      line-height: 1.5;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
     }
-    .row { margin-top: 6px; }
-    .hidden { display: none !important; }
-    pre.raw { font-size: 11px; overflow: auto; max-height: 160px; background: #0d1020; padding: 8px; border-radius: 8px; }
+    button:active { transform: scale(0.98); }
+    .btn-primary { background: #7b8cde; color: #fff; }
+    .btn-toggle-on  { background: #27ae60; color: #fff; margin-bottom: 12px; }
+    .btn-toggle-off { background: #e74c3c; color: #fff; margin-bottom: 12px; }
+    .btn-logout { background: #2a2a3e; color: #aaa; font-size: 14px; padding: 10px; }
+    .status-badge {
+      display: inline-block;
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin: 16px 0;
+    }
+    .badge-on  { background: #1a4a2e; color: #27ae60; }
+    .badge-off { background: #4a1a1a; color: #e74c3c; }
+    .badge-unknown { background: #2a2a3e; color: #888; }
+    .msg { font-size: 13px; color: #e74c3c; margin-top: 10px; text-align: center; min-height: 20px; }
+    .section-title { font-size: 13px; color: #888; margin-bottom: 6px; }
+    .info-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+    .info-label { color: #888; }
+    .info-value { color: #e0e0e0; font-family: monospace; }
+    .divider { border: none; border-top: 1px solid #2a2a3e; margin: 20px 0; }
+    #login-screen, #dashboard-screen { display: none; }
+    .spinner { text-align: center; color: #7b8cde; font-size: 13px; margin: 10px 0; }
   </style>
 </head>
 <body>
-  <div id="auth-panel">
-    <h1>청담봇 모바일</h1>
-    <label for="licenseKey">라이선스 키</label>
-    <input id="licenseKey" type="password" autocomplete="off" placeholder="라이선스 키" />
-    <label for="deviceFingerprint">기기 지문 (라이선스에 기기가 묶인 경우 필수)</label>
-    <input id="deviceFingerprint" type="text" autocomplete="off" placeholder="비워두면 미등록 라이선스만 가능" />
-    <button type="button" class="btn-primary" id="btn-login">로그인</button>
-    <div id="auth-error" class="err hidden"></div>
+
+<div class="card">
+  <div id="login-screen">
+    <h1>청담봇</h1>
+    <p class="subtitle">모바일 대시보드</p>
+    <input type="password" id="licenseInput" placeholder="라이선스 키 입력" autocomplete="off">
+    <p class="hint">기기에 묶인 라이선스는 아래에 기기 지문 입력</p>
+    <input type="text" id="deviceInput" placeholder="deviceFingerprint (선택)" autocomplete="off">
+    <button class="btn-primary" type="button" onclick="doLogin()">로그인</button>
+    <p class="msg" id="loginMsg"></p>
   </div>
 
-  <div id="app-panel" class="hidden">
-    <h1>대시보드</h1>
-    <button type="button" class="btn-secondary" id="btn-logout">로그아웃</button>
-    <div class="card">
-      <div class="row"><strong>고객명</strong> <span id="v-customer">—</span></div>
-      <div class="row"><strong>앱 버전</strong> <span id="v-version">—</span></div>
-      <div class="row"><strong>스레드 긴급중지</strong> <span id="v-stop">—</span></div>
-      <div class="row"><strong>기능 토글</strong></div>
-      <pre class="raw" id="v-toggles">—</pre>
+  <div id="dashboard-screen">
+    <h1>청담봇</h1>
+    <p class="subtitle">모바일 대시보드</p>
+    <hr class="divider">
+
+    <p class="section-title">봇 상태</p>
+    <div id="statusBadge" class="status-badge badge-unknown">확인 중...</div>
+    <div id="spinnerMsg" class="spinner"></div>
+
+    <hr class="divider">
+
+    <button id="toggleBtn" class="btn-toggle-off" type="button" onclick="doToggle()">
+      긴급 정지 토글
+    </button>
+    <button class="btn-logout" type="button" onclick="doLogout()">로그아웃</button>
+
+    <hr class="divider">
+
+    <p class="section-title">연결 정보</p>
+    <div class="info-row">
+      <span class="info-label">서버</span>
+      <span class="info-value" id="serverInfo">-</span>
     </div>
-    <button type="button" class="btn-primary" id="btn-toggle">토글 (스레드 긴급중지 반전)</button>
-    <div id="app-error" class="err hidden"></div>
+    <div class="info-row">
+      <span class="info-label">마지막 갱신</span>
+      <span class="info-value" id="lastUpdate">-</span>
+    </div>
+
+    <p class="msg" id="dashMsg"></p>
   </div>
+</div>
 
-  <script>
-    const BASE_URL = 'http://43.201.84.136:4300';
-    const TOKEN_KEY = 'cdToken';
+<script>
+  const BASE_URL = 'http://43.201.84.136:4300';
+  let refreshTimer = null;
 
-    function showErr(el, msg) {
-      if (!msg) {
-        el.classList.add('hidden');
-        el.textContent = '';
-        return;
-      }
-      el.textContent = msg;
-      el.classList.remove('hidden');
+  function threadsStopFromRow(row) {
+    if (!row || !row.status || !row.status.threadsPolicy) return undefined;
+    return row.status.threadsPolicy.threadsEmergencyStop === true;
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('serverInfo').textContent = '43.201.84.136:4300';
+    const token = localStorage.getItem('cdToken');
+    if (token) {
+      showDashboard();
+      fetchState();
+    } else {
+      showLogin();
     }
+  });
 
-    function authHeaders() {
-      const t = localStorage.getItem(TOKEN_KEY);
-      return {
-        'Content-Type': 'application/json',
-        ...(t ? { Authorization: 'Bearer ' + t } : {}),
-      };
+  function showLogin() {
+    document.getElementById('login-screen').style.display = 'block';
+    document.getElementById('dashboard-screen').style.display = 'none';
+    if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+  }
+  function showDashboard() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard-screen').style.display = 'block';
+    if (!refreshTimer) {
+      refreshTimer = setInterval(fetchState, 10000);
     }
+  }
 
-    async function api(path, opts) {
-      const url = BASE_URL + path;
-      const init = {
-        method: opts.method || 'GET',
-        headers: { ...authHeaders() },
-      };
-      if (opts.body != null) {
-        init.body = JSON.stringify(opts.body);
-      } else if (init.method === 'GET') {
-        delete init.headers['Content-Type'];
-      }
-      const res = await fetch(url, init);
-      let data = null;
-      try {
-        data = await res.json();
-      } catch (e) {
-        console.error('JSON parse', e);
-      }
+  async function doLogin() {
+    const key = document.getElementById('licenseInput').value.trim();
+    const deviceFingerprint = document.getElementById('deviceInput').value.trim();
+    const msgEl = document.getElementById('loginMsg');
+    msgEl.textContent = '';
+    if (!key) { msgEl.textContent = '라이선스 키를 입력하세요.'; return; }
+    try {
+      const res = await fetch(`${BASE_URL}/api/mobile/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ licenseKey: key, deviceFingerprint }),
+      });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const msg = (data && data.error) || res.status + ' ' + res.statusText;
-        throw new Error(msg);
-      }
-      if (data && data.ok === false) {
-        throw new Error(data.error || '요청 실패');
-      }
-      return data;
-    }
-
-    async function doLogin() {
-      const licenseKey = document.getElementById('licenseKey').value.trim();
-      const deviceFingerprint = document.getElementById('deviceFingerprint').value.trim();
-      showErr(document.getElementById('auth-error'), '');
-      if (!licenseKey) {
-        showErr(document.getElementById('auth-error'), '라이선스 키를 입력하세요.');
+        msgEl.textContent = data.error || res.statusText;
         return;
       }
-      try {
-        const data = await fetch(BASE_URL + '/api/mobile/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ licenseKey, deviceFingerprint }),
-        }).then(async (r) => {
-          const j = await r.json().catch(() => ({}));
-          if (!r.ok) throw new Error(j.error || r.statusText);
-          return j;
-        });
-        if (!data.token) throw new Error('토큰이 없습니다.');
-        localStorage.setItem(TOKEN_KEY, data.token);
-        document.getElementById('auth-panel').classList.add('hidden');
-        document.getElementById('app-panel').classList.remove('hidden');
-        await refreshState();
-      } catch (e) {
-        console.error(e);
-        showErr(document.getElementById('auth-error'), String(e.message || e));
+      if (data.ok && data.token) {
+        localStorage.setItem('cdToken', data.token);
+        showDashboard();
+        fetchState();
+      } else {
+        msgEl.textContent = data.error || '로그인에 실패했습니다.';
       }
+    } catch (err) {
+      console.error('[Login Error]', err);
+      msgEl.textContent = '서버에 연결할 수 없습니다.';
     }
+  }
 
-    async function refreshState() {
-      showErr(document.getElementById('app-error'), '');
-      try {
-        const data = await api('/api/mobile/state/get', { method: 'GET' });
-        const st = data.state;
-        if (!st) {
-          document.getElementById('v-customer').textContent = '(데스크톱 앱이 켜져 상태를 올리면 표시됩니다)';
-          document.getElementById('v-version').textContent = '—';
-          document.getElementById('v-stop').textContent = '—';
-          document.getElementById('v-toggles').textContent = '—';
-          return;
-        }
-        document.getElementById('v-customer').textContent = st.customerName || '—';
-        document.getElementById('v-version').textContent = st.appVersion || '—';
-        const stop = st.status && st.status.threadsPolicy && st.status.threadsPolicy.threadsEmergencyStop;
-        document.getElementById('v-stop').textContent = stop ? 'ON' : 'OFF';
-        const tg = st.status && st.status.mobileFeatureToggles;
-        document.getElementById('v-toggles').textContent = tg ? JSON.stringify(tg, null, 2) : '—';
-      } catch (e) {
-        console.error(e);
-        showErr(document.getElementById('app-error'), String(e.message || e));
+  async function fetchState() {
+    const token = localStorage.getItem('cdToken');
+    if (!token) { showLogin(); return; }
+    const spinner = document.getElementById('spinnerMsg');
+    spinner.textContent = '갱신 중...';
+    document.getElementById('dashMsg').textContent = '';
+    try {
+      const res = await fetch(`${BASE_URL}/api/mobile/state/get`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401 || res.status === 403) {
+        doLogout();
+        return;
       }
-    }
-
-    async function doToggle() {
-      showErr(document.getElementById('app-error'), '');
-      try {
-        await api('/api/mobile/commands/push', {
-          method: 'POST',
-          body: { command: 'toggle' },
-        });
-        await refreshState();
-      } catch (e) {
-        console.error(e);
-        showErr(document.getElementById('app-error'), String(e.message || e));
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) {
+        document.getElementById('dashMsg').textContent = data.error || '상태 조회 실패';
+        renderState(undefined);
+        return;
       }
+      renderState(data.state);
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ko-KR');
+    } catch (err) {
+      console.error('[State Error]', err);
+      document.getElementById('dashMsg').textContent = '상태 조회 실패. 네트워크를 확인하세요.';
+    } finally {
+      spinner.textContent = '';
     }
+  }
 
-    function doLogout() {
-      localStorage.removeItem(TOKEN_KEY);
-      document.getElementById('app-panel').classList.add('hidden');
-      document.getElementById('auth-panel').classList.remove('hidden');
+  function renderState(row) {
+    const badge = document.getElementById('statusBadge');
+    const btn = document.getElementById('toggleBtn');
+    const stopped = threadsStopFromRow(row);
+    if (stopped === true) {
+      badge.className = 'status-badge badge-off';
+      badge.textContent = '⛔ 긴급 정지 중';
+      btn.className = 'btn-toggle-on';
+      btn.textContent = '▶ 봇 재개';
+    } else if (stopped === false) {
+      badge.className = 'status-badge badge-on';
+      badge.textContent = '✅ 정상 운영 중';
+      btn.className = 'btn-toggle-off';
+      btn.textContent = '⏹ 긴급 정지';
+    } else {
+      badge.className = 'status-badge badge-unknown';
+      badge.textContent = row ? '❓ 상태 미확인 (데스크톱에서 앱 실행 시 동기화)' : '❓ 상태 없음';
     }
+  }
 
-    let pollTimer = null;
-    function startPoll() {
-      if (pollTimer) clearInterval(pollTimer);
-      pollTimer = setInterval(() => {
-        if (!localStorage.getItem(TOKEN_KEY)) return;
-        if (document.getElementById('app-panel').classList.contains('hidden')) return;
-        refreshState().catch(() => {});
-      }, 10000);
-    }
-
-    document.getElementById('btn-login').addEventListener('click', () => {
-      doLogin().then(() => startPoll());
-    });
-    document.getElementById('btn-logout').addEventListener('click', () => {
-      if (pollTimer) clearInterval(pollTimer);
-      pollTimer = null;
-      doLogout();
-    });
-    document.getElementById('btn-toggle').addEventListener('click', doToggle);
-
-    if (localStorage.getItem(TOKEN_KEY)) {
-      document.getElementById('auth-panel').classList.add('hidden');
-      document.getElementById('app-panel').classList.remove('hidden');
-      refreshState()
-        .then(() => startPoll())
-        .catch(() => {
-          doLogout();
+  async function doToggle() {
+    const token = localStorage.getItem('cdToken');
+    if (!token) { showLogin(); return; }
+    const msgEl = document.getElementById('dashMsg');
+    msgEl.textContent = '';
+    try {
+      const res = await fetch(`${BASE_URL}/api/mobile/commands/push`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ command: 'toggle' }),
+      });
+      if (res.status === 401 || res.status === 403) {
+        doLogout();
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) {
+        msgEl.textContent = data.error || '명령 실행 실패';
+        return;
+      }
+      if (typeof data.threadsEmergencyStop === 'boolean') {
+        renderState({
+          status: {
+            threadsPolicy: { threadsEmergencyStop: data.threadsEmergencyStop },
+          },
         });
+      }
+      await fetchState();
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ko-KR');
+    } catch (err) {
+      console.error('[Toggle Error]', err);
+      msgEl.textContent = '서버에 연결할 수 없습니다.';
     }
-  </script>
+  }
+
+  function doLogout() {
+    localStorage.removeItem('cdToken');
+    showLogin();
+    document.getElementById('licenseInput').value = '';
+    document.getElementById('deviceInput').value = '';
+    document.getElementById('loginMsg').textContent = '';
+  }
+</script>
+
 </body>
 </html>
