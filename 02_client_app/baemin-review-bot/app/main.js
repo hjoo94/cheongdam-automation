@@ -337,9 +337,11 @@
         '@echo off',
         'setlocal',
         'REM 본 프로세스가 완전히 내려간 뒤 설치기를 올려 파일 잠금·구버전 제거 실패를 줄입니다.',
-        'ping 127.0.0.1 -n 3 >nul',
+        'ping 127.0.0.1 -n 10 >nul',
         'taskkill /F /IM "Cheongdam Bot.exe" /T 1>nul 2>nul',
-        'ping 127.0.0.1 -n 4 >nul',
+        'ping 127.0.0.1 -n 6 >nul',
+        'taskkill /F /IM "Cheongdam Bot.exe" /T 1>nul 2>nul',
+        'ping 127.0.0.1 -n 10 >nul',
         `set "CHUNGDAM_SETUP=${setupForSet}"`,
         'start "" /wait "%CHUNGDAM_SETUP%" /S',
       ];

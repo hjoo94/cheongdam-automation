@@ -12,9 +12,9 @@ const DOWNLOADS_DIR = path.join(__dirname, 'downloads');
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://43.202.181.184:4300';
 const UPDATE_MANIFEST = {
   client: {
-    version: process.env.CLIENT_APP_VERSION || '1.0.34',
-    fileName: process.env.CLIENT_APP_FILE || 'Cheongdam Bot Setup 1.0.34.exe',
-    notes: 'asarUnpack에 app/config.js 포함(배민 블라인드 등 서브프로세스 require 수정)',
+    version: process.env.CLIENT_APP_VERSION || '1.0.35',
+    fileName: process.env.CLIENT_APP_FILE || 'Cheongdam Bot Setup 1.0.35.exe',
+    notes: 'NSIS/래퍼: 자동 업데이트 시 프로세스 종료 대기·taskkill 재시도 강화',
   },
   admin: {
     version: process.env.ADMIN_APP_VERSION || '1.0.9',
