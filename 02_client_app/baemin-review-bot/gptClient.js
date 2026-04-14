@@ -1,5 +1,9 @@
 const fs = require('fs');
 const path = require('path');
+const {
+  DEFAULT_SERVER_BASE_URL,
+  migrateServerBaseUrl,
+} = require('./app/config');
 
 function getRuntimePath() {
   if (process.env.RUNTIME_PATH && String(process.env.RUNTIME_PATH).trim()) {
@@ -20,16 +24,13 @@ function safeReadJson(filePath, fallback = {}) {
 }
 
 function normalizeServerBaseUrl(value = '') {
-  const fallback = 'http://43.203.124.132:4300';
-  const text = String(value || '').trim();
+  const fallback = DEFAULT_SERVER_BASE_URL;
+  const text = migrateServerBaseUrl(String(value || '').trim());
   if (!text) return fallback;
   if (/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?\/?$/i.test(text)) {
     return text.replace(/\/+$/, '');
   }
-  if (/^http:\/\/43\.201\.84\.136:4300\/?$/i.test(text) && process.env.CHUNGDAM_ALLOW_HTTP_SERVER !== 'false') {
-    return 'http://43.203.124.132:4300';
-  }
-  if (/^http:\/\/43\.203\.124\.132:4300\/?$/i.test(text) && process.env.CHUNGDAM_ALLOW_HTTP_SERVER !== 'false') {
+  if (/^http:\/\/43\.202\.181\.184:4300\/?$/i.test(text) && process.env.CHUNGDAM_ALLOW_HTTP_SERVER !== 'false') {
     return text.replace(/\/+$/, '');
   }
   if (!/^https:\/\//i.test(text)) {

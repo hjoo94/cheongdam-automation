@@ -5,26 +5,19 @@ const ENCRYPTED_PREFIX = 'enc:v1:';
 const SECRET_SETTING_KEYS = new Set(['threadsAccessToken']);
 const SENSITIVE_KEY_PATTERN = /(token|secret|password|passwd|pwd|authorization|api[_-]?key|license[_-]?key|access[_-]?token|refresh[_-]?token|cookie|set-cookie)/i;
 
-/** 이전 Lightsail 공인 IP — 더 이상 서비스하지 않으면 신규 호스트로 치환한다. */
-const LEGACY_LICENSE_SERVER_HOST = '43.201.84.136';
+const {
+  DEFAULT_SERVER_BASE_URL,
+  migrateServerBaseUrl,
+} = require('./config');
 
 function migrateLegacyLicenseServerUrl(value) {
   const trimmed = String(value || '').trim().replace(/\/+$/, '');
   if (!trimmed) return '';
-  try {
-    const u = new URL(trimmed);
-    if (u.hostname === LEGACY_LICENSE_SERVER_HOST) {
-      u.hostname = '43.203.124.132';
-      return u.toString().replace(/\/+$/, '');
-    }
-  } catch {
-    return trimmed;
-  }
-  return trimmed;
+  return migrateServerBaseUrl(trimmed);
 }
 
 function parseTrustedHttpHosts() {
-  const defaults = ['43.203.124.132', '43.201.84.136', '127.0.0.1', 'localhost'];
+  const defaults = ['43.202.181.184', '127.0.0.1', 'localhost'];
   const extra = String(process.env.CHUNGDAM_HTTP_TRUST_HOSTS || '')
     .split(/[,;\s]+/)
     .map((s) => s.trim())
@@ -61,7 +54,7 @@ function normalizeSecureServerBaseUrl(value, fallback, options = {}) {
     throw new Error('운영 환경에서는 HTTPS 서버 주소만 사용할 수 있습니다.');
   }
 
-  return fallbackText;
+  return fallbackText || DEFAULT_SERVER_BASE_URL;
 }
 
 function redactString(value) {

@@ -12,8 +12,8 @@ const DOWNLOADS_DIR = path.join(__dirname, 'downloads');
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || 'http://43.203.124.132:4300';
 const UPDATE_MANIFEST = {
   client: {
-    version: process.env.CLIENT_APP_VERSION || '1.0.32',
-    fileName: process.env.CLIENT_APP_FILE || 'Cheongdam Bot Setup 1.0.32.exe',
+    version: process.env.CLIENT_APP_VERSION || '1.0.33',
+    fileName: process.env.CLIENT_APP_FILE || 'Cheongdam Bot Setup 1.0.33.exe',
     notes: '설치 패키지 용량 최적화·업데이트 무결성(대용량 SHA)·전역 오류 로깅',
   },
   admin: {

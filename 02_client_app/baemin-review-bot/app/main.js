@@ -17,6 +17,12 @@
   const { appendSecurityAudit, hashValue } = require('../utils/securityAudit');
   const { compareVersions } = require('../utils/versionCompare');
   const {
+    DEFAULT_SERVER_BASE_URL,
+    migrateServerBaseUrl,
+    normalizeUrlText,
+    isLegacyServerBaseUrl,
+  } = require('./config');
+  const {
     normalizeSecureServerBaseUrl,
     isTrustedHttpLicenseServer,
     maskLogMessage,
@@ -46,8 +52,11 @@
   process.env.RUNTIME_PATH = runtimePath;
 
   // ===== 서버 주소 =====
-  const DEFAULT_SERVER_BASE_URL = process.env.CHUNGDAM_SERVER_URL || 'http://43.203.124.132:4300';
+  const SERVER_BASE_URL = process.env.CHUNGDAM_SERVER_URL || DEFAULT_SERVER_BASE_URL;
   const UPDATE_APP_ID = 'client';
+  const UPDATE_REQUEST_RETRY_COUNT = 2;
+  const UPDATE_REQUEST_RETRY_DELAY_MS = 3000;
+  const UPDATE_REQUEST_TIMEOUT_MS = 10000;
   const LICENSE_RECHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
   const FEATURE_RESTART_MAX_ATTEMPTS = 2;
   const FEATURE_RESTART_DELAY_MS = 2500;
@@ -79,7 +88,7 @@
   };
 
   const EMPTY_SETTINGS = {
-    serverBaseUrl: DEFAULT_SERVER_BASE_URL,
+    serverBaseUrl: SERVER_BASE_URL,
     storeName: '',
     reviewRule: '',
     baeminStoreId: '',
@@ -128,7 +137,7 @@
   }
 
   function normalizeServerBaseUrl(value) {
-    return normalizeSecureServerBaseUrl(value, DEFAULT_SERVER_BASE_URL, {
+    return normalizeSecureServerBaseUrl(migrateServerBaseUrl(value), SERVER_BASE_URL, {
       isPackaged: app.isPackaged,
       throwOnInsecure: app.isPackaged,
     });
@@ -175,12 +184,12 @@
       if (url.startsWith('https://')) {
         return `${contextLabel}에 연결할 수 없습니다: ${url} (서버가 꺼져 있거나 TLS 인증서를 확인하세요.)`;
       }
-      return `${contextLabel}에 연결할 수 없습니다: ${url} (프로세스·방화벽·4300 포트를 확인하세요. 기본 주소 http://43.203.124.132:4300 , 구 43.201.84.136 은 자동 치환됩니다.)`;
+      return `${contextLabel}에 연결할 수 없습니다: ${url} (업데이트 서버에 연결할 수 없습니다. 네트워크를 확인하거나 관리자에게 문의하세요.)`;
     }
     return message;
   }
 
-  async function fetchWithTimeout(url, options = {}, timeoutMs = 9000) {
+  async function fetchWithTimeout(url, options = {}, timeoutMs = UPDATE_REQUEST_TIMEOUT_MS) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), Math.max(1500, Number(timeoutMs) || 9000));
     try {
@@ -199,66 +208,42 @@
   }
 
   function buildUpdateServerCandidates() {
-    const runtime = safeReadJson(runtimePath, {});
     const settings = safeReadJson(settingsPath, EMPTY_SETTINGS);
-    const rawCandidates = [
-      String(settings.serverBaseUrl || '').trim(),
-      String(runtime.serverBaseUrl || '').trim(),
-      String(DEFAULT_SERVER_BASE_URL || '').trim(),
-    ].filter(Boolean);
-
-    const normalized = [];
-    const seen = new Set();
-
-    for (const raw of rawCandidates) {
-      try {
-        const safe = normalizeServerBaseUrl(raw);
-        if (!seen.has(safe)) {
-          seen.add(safe);
-          normalized.push(safe);
-        }
-        if (safe.startsWith('http://')) {
-          const httpsAlt = `https://${safe.replace(/^http:\/\//i, '')}`;
-          if (!seen.has(httpsAlt)) {
-            seen.add(httpsAlt);
-            normalized.push(httpsAlt);
-          }
-        }
-      } catch {
-        // ignore invalid candidate
-      }
-    }
-
-    return normalized;
+    const single = normalizeServerBaseUrl(settings.serverBaseUrl || SERVER_BASE_URL);
+    return [single];
   }
 
   async function fetchLatestManifestFromAnyServer() {
     const candidates = buildUpdateServerCandidates();
-    const failures = [];
+    const primaryUrl = candidates[0] || normalizeServerBaseUrl(SERVER_BASE_URL);
 
     for (const baseUrl of candidates) {
       const url = `${baseUrl}/api/updates/${UPDATE_APP_ID}/latest`;
-      try {
-        const response = await fetchWithTimeout(url, {}, 9000);
-        if (!response.ok) {
-          failures.push(`${baseUrl} -> HTTP ${response.status}`);
-          continue;
+      for (let attempt = 1; attempt <= UPDATE_REQUEST_RETRY_COUNT; attempt += 1) {
+        try {
+          const response = await fetchWithTimeout(url, {}, UPDATE_REQUEST_TIMEOUT_MS);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          const manifest = await response.json();
+          return { baseUrl, manifest };
+        } catch (error) {
+          if (attempt >= UPDATE_REQUEST_RETRY_COUNT) {
+            throw new Error(
+              `[업데이트] 서버 연결 실패: ${primaryUrl}\n(업데이트 서버에 연결할 수 없습니다. 네트워크를 확인하거나 관리자에게 문의하세요.)`
+            );
+          }
+          await new Promise((resolve) => setTimeout(resolve, UPDATE_REQUEST_RETRY_DELAY_MS));
         }
-        const manifest = await response.json();
-        return { baseUrl, manifest };
-      } catch (error) {
-        failures.push(`${baseUrl} -> ${explainFetchFailure(error, baseUrl, '업데이트 서버')}`);
       }
     }
-
     throw new Error(
-      '업데이트 서버 연결 실패. 시도한 주소: ' +
-      (failures.join(' | ') || '(없음)')
+      `[업데이트] 서버 연결 실패: ${primaryUrl}\n(업데이트 서버에 연결할 수 없습니다. 네트워크를 확인하거나 관리자에게 문의하세요.)`
     );
   }
 
   function persistWorkingServerBaseUrl(baseUrl = '') {
-    const normalized = String(baseUrl || '').trim();
+    const normalized = normalizeServerBaseUrl(String(baseUrl || '').trim());
     if (!normalized) return;
     const current = safeReadJson(settingsPath, EMPTY_SETTINGS);
     if (String(current.serverBaseUrl || '').trim() === normalized) return;
@@ -268,6 +253,24 @@
       serverBaseUrl: normalized,
     });
     sendLog(`[업데이트] 연결 가능한 서버 주소로 자동 보정: ${normalized}`);
+  }
+
+  function migrateStoredServerBaseUrl() {
+    if (!fs.existsSync(settingsPath)) return;
+    const encrypted = safeReadJson(settingsPath, EMPTY_SETTINGS);
+    const settings = decryptSettingsSecrets(safeStorage, encrypted);
+    const current = normalizeUrlText(settings.serverBaseUrl || '');
+    if (!current) return;
+    if (!isLegacyServerBaseUrl(current)) return;
+
+    const migrated = normalizeServerBaseUrl(current);
+    const merged = {
+      ...EMPTY_SETTINGS,
+      ...settings,
+      serverBaseUrl: migrated,
+    };
+    safeWriteJson(settingsPath, encryptSettingsSecrets(safeStorage, merged));
+    sendLog(`[MIGRATE] serverBaseUrl 구IP → 신IP 자동 교체 완료 (${current} -> ${migrated})`);
   }
 
   async function downloadFile(url, targetPath, expectedSha256 = '', licenseServerBaseUrl = '') {
@@ -431,7 +434,7 @@
     }
 
     const settings = safeReadJson(settingsPath, EMPTY_SETTINGS);
-    return normalizeServerBaseUrl(settings.serverBaseUrl || DEFAULT_SERVER_BASE_URL);
+    return normalizeServerBaseUrl(settings.serverBaseUrl || SERVER_BASE_URL);
   }
 
   function buildLicenseIntegrity(data = {}) {
@@ -620,6 +623,7 @@
     isIntentionalShutdown = false;
     installSecurityHeaders();
     initializeLocalState();
+    migrateStoredServerBaseUrl();
     createWindow();
     syncRuntimeFile();
     const runSilentUpdateCheck = () => {
